@@ -1,0 +1,12 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace ASM1.Service.Services.Interfaces
+{
+    public interface IAuthService
+    {
+        
+    }
+}

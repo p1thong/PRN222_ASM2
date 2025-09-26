@@ -1,19 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using ASM1.Repository.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace ASM1.Repository.Models;
+namespace ASM1.Repository.Data;
 
 public partial class CarSalesDbContext : DbContext
 {
-    public CarSalesDbContext()
-    {
-    }
+    public CarSalesDbContext() { }
 
     public CarSalesDbContext(DbContextOptions<CarSalesDbContext> options)
-        : base(options)
-    {
-    }
+        : base(options) { }
 
     public virtual DbSet<Customer> Customers { get; set; }
 
@@ -43,9 +40,12 @@ public partial class CarSalesDbContext : DbContext
 
     public virtual DbSet<VehicleVariant> VehicleVariants { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=(local);Uid=sa;Pwd=12345;Database=CarSalesDB;TrustServerCertificate=True");
+    //     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    // #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+    //         =>
+    //         optionsBuilder.UseSqlServer(
+    //             "Server=(local);Uid=sa;Pwd=12345;Database=CarSalesDB;TrustServerCertificate=True"
+    //         );
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -55,25 +55,20 @@ public partial class CarSalesDbContext : DbContext
 
             entity.ToTable("Customer");
 
-            entity.Property(e => e.CustomerId)
-                .ValueGeneratedNever()
-                .HasColumnName("customerId");
+            entity.Property(e => e.CustomerId).ValueGeneratedNever().HasColumnName("customerId");
             entity.Property(e => e.Birthday).HasColumnName("birthday");
             entity.Property(e => e.DealerId).HasColumnName("dealerId");
-            entity.Property(e => e.Email)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("email");
-            entity.Property(e => e.FullName)
+            entity.Property(e => e.Email).HasMaxLength(100).IsUnicode(false).HasColumnName("email");
+            entity
+                .Property(e => e.FullName)
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("fullName");
-            entity.Property(e => e.Phone)
-                .HasMaxLength(20)
-                .IsUnicode(false)
-                .HasColumnName("phone");
+            entity.Property(e => e.Phone).HasMaxLength(20).IsUnicode(false).HasColumnName("phone");
 
-            entity.HasOne(d => d.Dealer).WithMany(p => p.Customers)
+            entity
+                .HasOne(d => d.Dealer)
+                .WithMany(p => p.Customers)
                 .HasForeignKey(d => d.DealerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Customer__dealer__6FE99F9F");
@@ -85,25 +80,19 @@ public partial class CarSalesDbContext : DbContext
 
             entity.ToTable("Dealer");
 
-            entity.Property(e => e.DealerId)
-                .ValueGeneratedNever()
-                .HasColumnName("dealerId");
-            entity.Property(e => e.Email)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("email");
-            entity.Property(e => e.FullName)
+            entity.Property(e => e.DealerId).ValueGeneratedNever().HasColumnName("dealerId");
+            entity.Property(e => e.Email).HasMaxLength(100).IsUnicode(false).HasColumnName("email");
+            entity
+                .Property(e => e.FullName)
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("fullName");
-            entity.Property(e => e.Password)
+            entity
+                .Property(e => e.Password)
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("password");
-            entity.Property(e => e.Phone)
-                .HasMaxLength(20)
-                .IsUnicode(false)
-                .HasColumnName("phone");
+            entity.Property(e => e.Phone).HasMaxLength(20).IsUnicode(false).HasColumnName("phone");
             entity.Property(e => e.TransactionId).HasColumnName("transactionId");
         });
 
@@ -113,25 +102,32 @@ public partial class CarSalesDbContext : DbContext
 
             entity.ToTable("DealerContract");
 
-            entity.Property(e => e.DealerContractId)
+            entity
+                .Property(e => e.DealerContractId)
                 .ValueGeneratedNever()
                 .HasColumnName("dealerContractId");
-            entity.Property(e => e.CreditLimit)
+            entity
+                .Property(e => e.CreditLimit)
                 .HasColumnType("decimal(12, 2)")
                 .HasColumnName("creditLimit");
             entity.Property(e => e.DealerId).HasColumnName("dealerId");
             entity.Property(e => e.ManufacturerId).HasColumnName("manufacturerId");
             entity.Property(e => e.SignedDate).HasColumnName("signedDate");
-            entity.Property(e => e.TargetSales)
+            entity
+                .Property(e => e.TargetSales)
                 .HasColumnType("decimal(12, 2)")
                 .HasColumnName("targetSales");
 
-            entity.HasOne(d => d.Dealer).WithMany(p => p.DealerContracts)
+            entity
+                .HasOne(d => d.Dealer)
+                .WithMany(p => p.DealerContracts)
                 .HasForeignKey(d => d.DealerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__DealerCon__deale__6C190EBB");
 
-            entity.HasOne(d => d.Manufacturer).WithMany(p => p.DealerContracts)
+            entity
+                .HasOne(d => d.Manufacturer)
+                .WithMany(p => p.DealerContracts)
                 .HasForeignKey(d => d.ManufacturerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__DealerCon__manuf__6D0D32F4");
@@ -143,19 +139,18 @@ public partial class CarSalesDbContext : DbContext
 
             entity.ToTable("Feedback");
 
-            entity.Property(e => e.FeedbackId)
-                .ValueGeneratedNever()
-                .HasColumnName("feedbackId");
-            entity.Property(e => e.Content)
+            entity.Property(e => e.FeedbackId).ValueGeneratedNever().HasColumnName("feedbackId");
+            entity
+                .Property(e => e.Content)
                 .HasMaxLength(500)
                 .IsUnicode(false)
                 .HasColumnName("content");
-            entity.Property(e => e.CreatedAt)
-                .HasColumnType("datetime")
-                .HasColumnName("createdAt");
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime").HasColumnName("createdAt");
             entity.Property(e => e.CustomerId).HasColumnName("customerId");
 
-            entity.HasOne(d => d.Customer).WithMany(p => p.Feedbacks)
+            entity
+                .HasOne(d => d.Customer)
+                .WithMany(p => p.Feedbacks)
                 .HasForeignKey(d => d.CustomerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Feedback__custom__02FC7413");
@@ -167,21 +162,21 @@ public partial class CarSalesDbContext : DbContext
 
             entity.ToTable("Manufacturer");
 
-            entity.Property(e => e.ManufacturerId)
+            entity
+                .Property(e => e.ManufacturerId)
                 .ValueGeneratedNever()
                 .HasColumnName("manufacturerId");
-            entity.Property(e => e.Address)
+            entity
+                .Property(e => e.Address)
                 .HasMaxLength(200)
                 .IsUnicode(false)
                 .HasColumnName("address");
-            entity.Property(e => e.Country)
+            entity
+                .Property(e => e.Country)
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("country");
-            entity.Property(e => e.Name)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("name");
+            entity.Property(e => e.Name).HasMaxLength(100).IsUnicode(false).HasColumnName("name");
         });
 
         modelBuilder.Entity<Order>(entity =>
@@ -190,29 +185,34 @@ public partial class CarSalesDbContext : DbContext
 
             entity.ToTable("Order");
 
-            entity.Property(e => e.OrderId)
-                .ValueGeneratedNever()
-                .HasColumnName("orderId");
+            entity.Property(e => e.OrderId).ValueGeneratedNever().HasColumnName("orderId");
             entity.Property(e => e.CustomerId).HasColumnName("customerId");
             entity.Property(e => e.DealerId).HasColumnName("dealerId");
             entity.Property(e => e.OrderDate).HasColumnName("orderDate");
-            entity.Property(e => e.Status)
+            entity
+                .Property(e => e.Status)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("status");
             entity.Property(e => e.VariantId).HasColumnName("variantId");
 
-            entity.HasOne(d => d.Customer).WithMany(p => p.Orders)
+            entity
+                .HasOne(d => d.Customer)
+                .WithMany(p => p.Orders)
                 .HasForeignKey(d => d.CustomerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Order__customerI__797309D9");
 
-            entity.HasOne(d => d.Dealer).WithMany(p => p.Orders)
+            entity
+                .HasOne(d => d.Dealer)
+                .WithMany(p => p.Orders)
                 .HasForeignKey(d => d.DealerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Order__dealerId__787EE5A0");
 
-            entity.HasOne(d => d.Variant).WithMany(p => p.Orders)
+            entity
+                .HasOne(d => d.Variant)
+                .WithMany(p => p.Orders)
                 .HasForeignKey(d => d.VariantId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Order__variantId__7A672E12");
@@ -224,20 +224,19 @@ public partial class CarSalesDbContext : DbContext
 
             entity.ToTable("Payment");
 
-            entity.Property(e => e.PaymentId)
-                .ValueGeneratedNever()
-                .HasColumnName("paymentId");
-            entity.Property(e => e.Amount)
-                .HasColumnType("decimal(12, 2)")
-                .HasColumnName("amount");
-            entity.Property(e => e.Method)
+            entity.Property(e => e.PaymentId).ValueGeneratedNever().HasColumnName("paymentId");
+            entity.Property(e => e.Amount).HasColumnType("decimal(12, 2)").HasColumnName("amount");
+            entity
+                .Property(e => e.Method)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("method");
             entity.Property(e => e.OrderId).HasColumnName("orderId");
             entity.Property(e => e.PaymentDate).HasColumnName("paymentDate");
 
-            entity.HasOne(d => d.Order).WithMany(p => p.Payments)
+            entity
+                .HasOne(d => d.Order)
+                .WithMany(p => p.Payments)
                 .HasForeignKey(d => d.OrderId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Payment__orderId__7D439ABD");
@@ -249,20 +248,22 @@ public partial class CarSalesDbContext : DbContext
 
             entity.ToTable("Promotion");
 
-            entity.Property(e => e.PromotionId)
-                .ValueGeneratedNever()
-                .HasColumnName("promotionId");
-            entity.Property(e => e.DiscountAmount)
+            entity.Property(e => e.PromotionId).ValueGeneratedNever().HasColumnName("promotionId");
+            entity
+                .Property(e => e.DiscountAmount)
                 .HasColumnType("decimal(12, 2)")
                 .HasColumnName("discountAmount");
             entity.Property(e => e.OrderId).HasColumnName("orderId");
-            entity.Property(e => e.PromotionCode)
+            entity
+                .Property(e => e.PromotionCode)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("promotionCode");
             entity.Property(e => e.ValidUntil).HasColumnName("validUntil");
 
-            entity.HasOne(d => d.Order).WithMany(p => p.Promotions)
+            entity
+                .HasOne(d => d.Order)
+                .WithMany(p => p.Promotions)
                 .HasForeignKey(d => d.OrderId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Promotion__order__00200768");
@@ -274,34 +275,35 @@ public partial class CarSalesDbContext : DbContext
 
             entity.ToTable("Quotation");
 
-            entity.Property(e => e.QuotationId)
-                .ValueGeneratedNever()
-                .HasColumnName("quotationId");
-            entity.Property(e => e.CreatedAt)
-                .HasColumnType("datetime")
-                .HasColumnName("createdAt");
+            entity.Property(e => e.QuotationId).ValueGeneratedNever().HasColumnName("quotationId");
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime").HasColumnName("createdAt");
             entity.Property(e => e.CustomerId).HasColumnName("customerId");
             entity.Property(e => e.DealerId).HasColumnName("dealerId");
-            entity.Property(e => e.Price)
-                .HasColumnType("decimal(12, 2)")
-                .HasColumnName("price");
-            entity.Property(e => e.Status)
+            entity.Property(e => e.Price).HasColumnType("decimal(12, 2)").HasColumnName("price");
+            entity
+                .Property(e => e.Status)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("status");
             entity.Property(e => e.VariantId).HasColumnName("variantId");
 
-            entity.HasOne(d => d.Customer).WithMany(p => p.Quotations)
+            entity
+                .HasOne(d => d.Customer)
+                .WithMany(p => p.Quotations)
                 .HasForeignKey(d => d.CustomerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Quotation__custo__0C85DE4D");
 
-            entity.HasOne(d => d.Dealer).WithMany(p => p.Quotations)
+            entity
+                .HasOne(d => d.Dealer)
+                .WithMany(p => p.Quotations)
                 .HasForeignKey(d => d.DealerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Quotation__deale__0E6E26BF");
 
-            entity.HasOne(d => d.Variant).WithMany(p => p.Quotations)
+            entity
+                .HasOne(d => d.Variant)
+                .WithMany(p => p.Quotations)
                 .HasForeignKey(d => d.VariantId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Quotation__varia__0D7A0286");
@@ -313,13 +315,16 @@ public partial class CarSalesDbContext : DbContext
 
             entity.ToTable("SalesContract");
 
-            entity.Property(e => e.SaleContractId)
+            entity
+                .Property(e => e.SaleContractId)
                 .ValueGeneratedNever()
                 .HasColumnName("saleContractId");
             entity.Property(e => e.OrderId).HasColumnName("orderId");
             entity.Property(e => e.SignedDate).HasColumnName("signedDate");
 
-            entity.HasOne(d => d.Order).WithMany(p => p.SalesContracts)
+            entity
+                .HasOne(d => d.Order)
+                .WithMany(p => p.SalesContracts)
                 .HasForeignKey(d => d.OrderId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__SalesCont__order__05D8E0BE");
@@ -331,23 +336,26 @@ public partial class CarSalesDbContext : DbContext
 
             entity.ToTable("TestDrive");
 
-            entity.Property(e => e.TestDriveId)
-                .ValueGeneratedNever()
-                .HasColumnName("testDriveId");
+            entity.Property(e => e.TestDriveId).ValueGeneratedNever().HasColumnName("testDriveId");
             entity.Property(e => e.CustomerId).HasColumnName("customerId");
             entity.Property(e => e.ScheduledDate).HasColumnName("scheduledDate");
-            entity.Property(e => e.Status)
+            entity
+                .Property(e => e.Status)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("status");
             entity.Property(e => e.VariantId).HasColumnName("variantId");
 
-            entity.HasOne(d => d.Customer).WithMany(p => p.TestDrives)
+            entity
+                .HasOne(d => d.Customer)
+                .WithMany(p => p.TestDrives)
                 .HasForeignKey(d => d.CustomerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__TestDrive__custo__08B54D69");
 
-            entity.HasOne(d => d.Variant).WithMany(p => p.TestDrives)
+            entity
+                .HasOne(d => d.Variant)
+                .WithMany(p => p.TestDrives)
                 .HasForeignKey(d => d.VariantId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__TestDrive__varia__09A971A2");
@@ -359,37 +367,32 @@ public partial class CarSalesDbContext : DbContext
 
             entity.ToTable("User");
 
-            entity.Property(e => e.UserId)
-                .ValueGeneratedNever()
-                .HasColumnName("userId");
+            entity.Property(e => e.UserId).ValueGeneratedNever().HasColumnName("userId");
             entity.Property(e => e.DealerId).HasColumnName("dealerId");
-            entity.Property(e => e.Email)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("email");
-            entity.Property(e => e.FullName)
+            entity.Property(e => e.Email).HasMaxLength(100).IsUnicode(false).HasColumnName("email");
+            entity
+                .Property(e => e.FullName)
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("fullName");
             entity.Property(e => e.ManufacturerId).HasColumnName("manufacturerId");
-            entity.Property(e => e.Password)
+            entity
+                .Property(e => e.Password)
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("password");
-            entity.Property(e => e.Phone)
-                .HasMaxLength(20)
-                .IsUnicode(false)
-                .HasColumnName("phone");
-            entity.Property(e => e.Role)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("role");
+            entity.Property(e => e.Phone).HasMaxLength(20).IsUnicode(false).HasColumnName("phone");
+            entity.Property(e => e.Role).HasMaxLength(50).IsUnicode(false).HasColumnName("role");
 
-            entity.HasOne(d => d.Dealer).WithMany(p => p.Users)
+            entity
+                .HasOne(d => d.Dealer)
+                .WithMany(p => p.Users)
                 .HasForeignKey(d => d.DealerId)
                 .HasConstraintName("FK__User__dealerId__68487DD7");
 
-            entity.HasOne(d => d.Manufacturer).WithMany(p => p.Users)
+            entity
+                .HasOne(d => d.Manufacturer)
+                .WithMany(p => p.Users)
                 .HasForeignKey(d => d.ManufacturerId)
                 .HasConstraintName("FK__User__manufactur__693CA210");
         });
@@ -400,20 +403,21 @@ public partial class CarSalesDbContext : DbContext
 
             entity.ToTable("VehicleModel");
 
-            entity.Property(e => e.VehicleModelId)
+            entity
+                .Property(e => e.VehicleModelId)
                 .ValueGeneratedNever()
                 .HasColumnName("vehicleModelId");
-            entity.Property(e => e.Category)
+            entity
+                .Property(e => e.Category)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("category");
             entity.Property(e => e.ManufacturerId).HasColumnName("manufacturerId");
-            entity.Property(e => e.Name)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("name");
+            entity.Property(e => e.Name).HasMaxLength(100).IsUnicode(false).HasColumnName("name");
 
-            entity.HasOne(d => d.Manufacturer).WithMany(p => p.VehicleModels)
+            entity
+                .HasOne(d => d.Manufacturer)
+                .WithMany(p => p.VehicleModels)
                 .HasForeignKey(d => d.ManufacturerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__VehicleMo__manuf__72C60C4A");
@@ -425,24 +429,20 @@ public partial class CarSalesDbContext : DbContext
 
             entity.ToTable("VehicleVariant");
 
-            entity.Property(e => e.VariantId)
-                .ValueGeneratedNever()
-                .HasColumnName("variantId");
-            entity.Property(e => e.Color)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("color");
-            entity.Property(e => e.Price)
-                .HasColumnType("decimal(12, 2)")
-                .HasColumnName("price");
+            entity.Property(e => e.VariantId).ValueGeneratedNever().HasColumnName("variantId");
+            entity.Property(e => e.Color).HasMaxLength(50).IsUnicode(false).HasColumnName("color");
+            entity.Property(e => e.Price).HasColumnType("decimal(12, 2)").HasColumnName("price");
             entity.Property(e => e.ProductYear).HasColumnName("productYear");
             entity.Property(e => e.VehicleModelId).HasColumnName("vehicleModelId");
-            entity.Property(e => e.Version)
+            entity
+                .Property(e => e.Version)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("version");
 
-            entity.HasOne(d => d.VehicleModel).WithMany(p => p.VehicleVariants)
+            entity
+                .HasOne(d => d.VehicleModel)
+                .WithMany(p => p.VehicleVariants)
                 .HasForeignKey(d => d.VehicleModelId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__VehicleVa__vehic__75A278F5");

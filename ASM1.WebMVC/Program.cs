@@ -21,7 +21,7 @@ builder.Services.AddSession(options =>
 
 //add connection String
 builder.Services.AddDbContext<CarSalesDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+    options.UseSqlServer(builder.Configuration.GetConnectionString("CarSalesDB"))
 );
 
 //add repositories

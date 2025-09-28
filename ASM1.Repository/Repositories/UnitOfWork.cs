@@ -7,7 +7,10 @@ namespace ASM1.Repository.Repositories
     {
         private readonly CarSalesDbContext _context;
         private ICustomerRepository? _customerRepository;
-        // Add other repositories here
+        private IQuotationRepository? _quotationRepository;
+        private IOrderRepository? _orderRepository;
+        private ISalesContractRepository? _salesContractRepository;
+        private IPaymentRepository? _paymentRepository;
 
         public UnitOfWork(CarSalesDbContext context)
         {
@@ -15,7 +18,10 @@ namespace ASM1.Repository.Repositories
         }
 
         public ICustomerRepository Customers => _customerRepository ??= new CustomerRepository(_context);
-        // Add other repositories' properties here
+        public IQuotationRepository Quotations => _quotationRepository ??= new QuotationRepository(_context);
+        public IOrderRepository Orders => _orderRepository ??= new OrderRepository(_context);
+        public ISalesContractRepository SalesContracts => _salesContractRepository ??= new SalesContractRepository(_context);
+        public IPaymentRepository Payments => _paymentRepository ??= new PaymentRepository(_context);
 
         public async Task<int> SaveChangesAsync()
         {

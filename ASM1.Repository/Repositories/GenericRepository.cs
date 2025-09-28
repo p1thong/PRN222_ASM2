@@ -6,6 +6,21 @@ namespace ASM1.Repository.Repositories
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
+        /// <summary>
+        /// Sinh id ngẫu nhiên, kiểm tra trùng cho entity có int id property.
+        /// </summary>
+        public async Task<int> GenerateUniqueIdAsync(Expression<Func<T, int>> idSelector)
+        {
+            var rand = new Random();
+            int id;
+            bool exists;
+            do
+            {
+                id = rand.Next(1_000_000, 9_999_999);
+                exists = await _dbSet.AnyAsync(e => idSelector.Compile().Invoke(e) == id);
+            } while (exists);
+            return id;
+        }
         private readonly DbContext _context;
         private readonly DbSet<T> _dbSet;
 

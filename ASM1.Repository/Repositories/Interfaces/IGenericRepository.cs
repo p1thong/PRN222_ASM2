@@ -9,6 +9,7 @@ namespace ASM1.Repository.Repositories.Interfaces
 {
     public interface IGenericRepository<T> where T : class
     {
+        Task<int> GenerateUniqueIdAsync(Expression<Func<T, int>> idSelector);
         Task<IEnumerable<T>> GetAllAsync();
         Task<T?> GetByIdAsync(int id);
         Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate);
@@ -19,6 +20,5 @@ namespace ASM1.Repository.Repositories.Interfaces
         Task UpdateAsync(T entity);
         Task DeleteAsync(int id);
         void DeleteRange(IEnumerable<T> entities);
-
     }
 }

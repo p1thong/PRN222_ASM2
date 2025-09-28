@@ -1,0 +1,31 @@
+@model IEnumerable<ASM1.Service.Models.CustomerViewModel>
+@{
+    ViewData["Title"] = "Customer List";
+}
+<h2>Customer List</h2>
+<a class="btn btn-success mb-2" asp-action="Add">Add Customer</a>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Dealer</th>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Birthday</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var customer in Model)
+        {
+            <tr>
+                <td>@customer.CustomerId</td>
+                <td>@customer.DealerId</td>
+                <td>@customer.FullName</td>
+                <td>@customer.Email</td>
+                <td>@customer.Phone</td>
+                <td>@customer.Birthday</td>
+            </tr>
+        }
+    </tbody>
+</table>

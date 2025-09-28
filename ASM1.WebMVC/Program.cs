@@ -24,11 +24,16 @@ builder.Services.AddDbContext<CarSalesDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
+
 //add repositories
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
 
 //add services
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddAutoMapper(typeof(Program));
 
 
 var app = builder.Build();

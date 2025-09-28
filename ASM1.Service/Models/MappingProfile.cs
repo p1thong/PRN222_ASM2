@@ -9,6 +9,18 @@ namespace ASM1.Service.Models
         {
             CreateMap<Customer, CustomerViewModel>().ReverseMap();
             CreateMap<CustomerCreateViewModel, Customer>();
+
+            CreateMap<Quotation, QuotationViewModel>().ReverseMap();
+            CreateMap<QuotationCreateViewModel, Quotation>();
+
+            CreateMap<Order, OrderViewModel>().ReverseMap();
+            CreateMap<OrderCreateViewModel, Order>();
+
+            CreateMap<SalesContract, SalesContractViewModel>().ReverseMap();
+            CreateMap<SalesContractCreateViewModel, SalesContract>();
+
+            CreateMap<Payment, PaymentViewModel>().ReverseMap();
+            CreateMap<PaymentCreateViewModel, Payment>();
         }
     }
 }

@@ -20,6 +20,5 @@ namespace ASM1.Repository.Repositories.Interfaces
         Task DeleteAsync(int id);
         void DeleteRange(IEnumerable<T> entities);
 
-        Task<int> SaveChangesAsync();
     }
 }

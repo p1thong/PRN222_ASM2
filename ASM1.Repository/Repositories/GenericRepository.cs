@@ -55,10 +55,6 @@ namespace ASM1.Repository.Repositories
             return await _dbSet.FindAsync(id);
         }
 
-        public async Task<int> SaveChangesAsync()
-        {
-            return await _context.SaveChangesAsync();
-        }
 
         public async Task UpdateAsync(T entity)
         {

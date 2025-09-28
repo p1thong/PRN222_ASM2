@@ -448,6 +448,9 @@ public partial class CarSalesDbContext : DbContext
                 .HasConstraintName("FK__VehicleVa__vehic__75A278F5");
         });
 
+        // Apply seed data
+        SeedData.Seed(modelBuilder);
+
         OnModelCreatingPartial(modelBuilder);
     }
 

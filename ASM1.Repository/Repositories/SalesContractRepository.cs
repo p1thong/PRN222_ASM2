@@ -1,6 +1,7 @@
 using ASM1.Repository.Data;
 using ASM1.Repository.Models;
 using ASM1.Repository.Repositories.Interfaces;
+using ASM1.Repository.Utilities;
 
 namespace ASM1.Repository.Repositories
 {
@@ -9,6 +10,10 @@ namespace ASM1.Repository.Repositories
         public SalesContractRepository(CarSalesDbContext context) : base(context)
         {
         }
-        // Implement custom methods for SalesContract if needed
+        
+        public async Task<int> GenerateUniqueSalesContractIdAsync()
+        {
+            return await IdGenerator.GenerateUniqueSalesContractIdAsync(_context);
+        }
     }
 }

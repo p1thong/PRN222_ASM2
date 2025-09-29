@@ -32,7 +32,7 @@ namespace ASM1.Service.Services
         public async Task AddAsync(QuotationCreateViewModel quotationVm)
         {
             var quotation = _mapper.Map<Quotation>(quotationVm);
-            quotation.QuotationId = await _unitOfWork.Quotations.GenerateUniqueIdAsync(q => q.QuotationId);
+            quotation.QuotationId = await _unitOfWork.Quotations.GenerateUniqueQuotationIdAsync();
             await _unitOfWork.Quotations.AddAsync(quotation);
             await _unitOfWork.SaveChangesAsync();
         }

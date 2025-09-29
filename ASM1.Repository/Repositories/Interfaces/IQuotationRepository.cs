@@ -5,6 +5,6 @@ namespace ASM1.Repository.Repositories.Interfaces
 {
     public interface IQuotationRepository : IGenericRepository<Quotation>
     {
-        // Add custom methods for Quotation if needed
+        Task<int> GenerateUniqueQuotationIdAsync();
     }
 }

@@ -4,10 +4,10 @@ namespace ASM1.Service.Services.Interfaces
 {
     public interface ICustomerService
     {
-        Task<IEnumerable<CustomerViewModel>> GetAllAsync();
-        Task<CustomerViewModel?> GetByIdAsync(int id);
-    Task AddAsync(CustomerCreateViewModel customer);
-        Task UpdateAsync(CustomerViewModel customer);
-        Task DeleteAsync(int id);
+        Task<ServiceResponse<IEnumerable<CustomerViewModel>>> GetAllAsync();
+        Task<ServiceResponse<CustomerViewModel>> GetByIdAsync(int id);
+        Task<ServiceResponse> AddAsync(CustomerCreateViewModel customer);
+        Task<ServiceResponse> UpdateAsync(CustomerViewModel customer);
+        Task<ServiceResponse> DeleteAsync(int id);
     }
 }

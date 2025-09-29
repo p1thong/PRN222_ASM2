@@ -32,7 +32,7 @@ namespace ASM1.Service.Services
         public async Task AddAsync(OrderCreateViewModel orderVm)
         {
             var order = _mapper.Map<Order>(orderVm);
-            order.OrderId = await _unitOfWork.Orders.GenerateUniqueIdAsync(o => o.OrderId);
+            order.OrderId = await _unitOfWork.Orders.GenerateUniqueOrderIdAsync();
             await _unitOfWork.Orders.AddAsync(order);
             await _unitOfWork.SaveChangesAsync();
         }

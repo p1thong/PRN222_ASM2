@@ -32,7 +32,7 @@ namespace ASM1.Service.Services
         public async Task AddAsync(SalesContractCreateViewModel contractVm)
         {
             var contract = _mapper.Map<SalesContract>(contractVm);
-            contract.SaleContractId = await _unitOfWork.SalesContracts.GenerateUniqueIdAsync(c => c.SaleContractId);
+            contract.SaleContractId = await _unitOfWork.SalesContracts.GenerateUniqueSalesContractIdAsync();
             await _unitOfWork.SalesContracts.AddAsync(contract);
             await _unitOfWork.SaveChangesAsync();
         }

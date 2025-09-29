@@ -32,7 +32,7 @@ namespace ASM1.Service.Services
         public async Task AddAsync(PaymentCreateViewModel paymentVm)
         {
             var payment = _mapper.Map<Payment>(paymentVm);
-            payment.PaymentId = await _unitOfWork.Payments.GenerateUniqueIdAsync(p => p.PaymentId);
+            payment.PaymentId = await _unitOfWork.Payments.GenerateUniquePaymentIdAsync();
             await _unitOfWork.Payments.AddAsync(payment);
             await _unitOfWork.SaveChangesAsync();
         }

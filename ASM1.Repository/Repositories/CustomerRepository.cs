@@ -1,6 +1,8 @@
 using ASM1.Repository.Data;
 using ASM1.Repository.Models;
 using ASM1.Repository.Repositories.Interfaces;
+using ASM1.Repository.Utilities;
+using Microsoft.EntityFrameworkCore;
 
 namespace ASM1.Repository.Repositories
 {
@@ -10,6 +12,12 @@ namespace ASM1.Repository.Repositories
 		{
 		}
 
-		// Implement custom methods for Customer if needed
+		/// <summary>
+		/// Sinh CustomerId ngẫu nhiên và kiểm tra trùng
+		/// </summary>
+		public async Task<int> GenerateUniqueCustomerIdAsync()
+		{
+			return await IdGenerator.GenerateUniqueCustomerIdAsync(_context);
+		}
 	}
 }

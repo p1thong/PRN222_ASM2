@@ -5,6 +5,6 @@ namespace ASM1.Repository.Repositories.Interfaces
 {
     public interface ISalesContractRepository : IGenericRepository<SalesContract>
     {
-        // Add custom methods for SalesContract if needed
+        Task<int> GenerateUniqueSalesContractIdAsync();
     }
 }

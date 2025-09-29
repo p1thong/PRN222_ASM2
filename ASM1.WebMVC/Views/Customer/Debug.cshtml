@@ -1,0 +1,27 @@
+@{
+    ViewData["Title"] = "Debug Session";
+}
+
+<h2>Debug Session Information</h2>
+
+<div class="alert alert-info">
+    @ViewBag.DebugInfo
+</div>
+
+<h3>Session Values:</h3>
+<ul>
+    <li><strong>UserId:</strong> @Context.Session.GetString("UserId")</li>
+    <li><strong>UserRole:</strong> @Context.Session.GetString("UserRole")</li>
+    <li><strong>FullName:</strong> @Context.Session.GetString("FullName")</li>
+    <li><strong>DealerId:</strong> @Context.Session.GetInt32("DealerId")</li>
+</ul>
+
+<h3>All Session Keys:</h3>
+<ul>
+    @foreach (var key in Context.Session.Keys)
+    {
+        <li><strong>@key:</strong> @Context.Session.GetString(key)</li>
+    }
+</ul>
+
+<a asp-action="Index" class="btn btn-primary">Back to Customer List</a>

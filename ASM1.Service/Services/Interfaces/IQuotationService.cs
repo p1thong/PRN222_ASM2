@@ -6,6 +6,7 @@ namespace ASM1.Service.Services.Interfaces
     {
         Task<IEnumerable<QuotationViewModel>> GetAllAsync();
         Task<QuotationViewModel?> GetByIdAsync(int id);
+        Task<IEnumerable<QuotationViewModel>> GetByCustomerIdAsync(int customerId);
         Task<QuotationDetailViewModel?> GetDetailsByIdAsync(int id);
         Task AddAsync(QuotationCreateViewModel quotation);
         Task UpdateAsync(QuotationViewModel quotation);

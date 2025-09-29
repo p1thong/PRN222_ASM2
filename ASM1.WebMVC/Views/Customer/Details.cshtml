@@ -103,3 +103,87 @@
         </button>
     </form>
 </div>
+
+<!-- Quotations Section -->
+@{
+    var quotations = ViewBag.Quotations as IEnumerable<ASM1.Service.Models.QuotationViewModel>;
+}
+
+@if (quotations != null && quotations.Any())
+{
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4><i class="bi bi-file-earmark-text"></i> Quotations History</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Quotation ID</th>
+                            <th>Vehicle Info</th>
+                            <th>Price</th>
+                            <th>Created Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var quotation in quotations)
+                        {
+                            <tr>
+                                <td><strong>#@quotation.QuotationId</strong></td>
+                                <td>@quotation.VehicleInfo</td>
+                                <td>
+                                    <span class="text-success fw-bold">
+                                        @quotation.Price.ToString("C0", new System.Globalization.CultureInfo("vi-VN"))
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (quotation.CreatedAt.HasValue)
+                                    {
+                                        @quotation.CreatedAt.Value.ToString("dd/MM/yyyy")
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(quotation.Status))
+                                    {
+                                        <span class="badge bg-primary">@quotation.Status</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Pending</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a class="btn btn-sm btn-outline-primary" asp-controller="Quotation" asp-action="Details" asp-route-id="@quotation.QuotationId">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4><i class="bi bi-file-earmark-text"></i> Quotations History</h4>
+        </div>
+        <div class="card-body text-center">
+            <div class="text-muted">
+                <i class="bi bi-inbox display-1 mb-3"></i>
+                <h5>No quotations found</h5>
+                <p>This customer doesn't have any quotations yet.</p>
+            </div>
+        </div>
+    </div>
+}

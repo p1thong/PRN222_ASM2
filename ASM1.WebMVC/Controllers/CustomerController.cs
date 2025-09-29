@@ -8,10 +8,12 @@ namespace ASM1.WebMVC.Controllers
     public class CustomerController : BaseController
     {
         private readonly ICustomerService _customerService;
+        private readonly IQuotationService _quotationService;
 
-        public CustomerController(ICustomerService customerService)
+        public CustomerController(ICustomerService customerService, IQuotationService quotationService)
         {
             _customerService = customerService;
+            _quotationService = quotationService;
         }
 
         public async Task<IActionResult> Index()
@@ -133,6 +135,10 @@ namespace ASM1.WebMVC.Controllers
                 this.HandleResponseWithTempData(response);
                 return RedirectToAction("Index");
             }
+
+            // Lấy danh sách quotations cho customer này
+            var quotations = await _quotationService.GetByCustomerIdAsync(id);
+            ViewBag.Quotations = quotations;
 
             return View(response.Data);
         }

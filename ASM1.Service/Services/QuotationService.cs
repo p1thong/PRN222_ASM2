@@ -31,6 +31,13 @@ namespace ASM1.Service.Services
             return quotation == null ? null : _mapper.Map<QuotationViewModel>(quotation);
         }
 
+        public async Task<IEnumerable<QuotationViewModel>> GetByCustomerIdAsync(int customerId)
+        {
+            var quotations = await _unitOfWork.Quotations.GetAllAsync();
+            var customerQuotations = quotations.Where(q => q.CustomerId == customerId);
+            return _mapper.Map<IEnumerable<QuotationViewModel>>(customerQuotations);
+        }
+
         public async Task<QuotationDetailViewModel?> GetDetailsByIdAsync(int id)
         {
             var quotation = await _unitOfWork.Quotations.GetByIdAsync(id);

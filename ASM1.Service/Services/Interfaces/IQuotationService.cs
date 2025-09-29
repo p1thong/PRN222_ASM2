@@ -6,8 +6,11 @@ namespace ASM1.Service.Services.Interfaces
     {
         Task<IEnumerable<QuotationViewModel>> GetAllAsync();
         Task<QuotationViewModel?> GetByIdAsync(int id);
+        Task<QuotationDetailViewModel?> GetDetailsByIdAsync(int id);
         Task AddAsync(QuotationCreateViewModel quotation);
         Task UpdateAsync(QuotationViewModel quotation);
         Task DeleteAsync(int id);
+        Task<QuotationDetailViewModel> CalculatePricingAsync(QuotationPricingRequest request);
+        Task<QuotationDetailViewModel> CalculatePricingWithPromotionsAsync(int variantId, int customerId, decimal additionalFees = 0, decimal taxRate = 0.1m);
     }
 }

@@ -101,6 +101,11 @@
                                             <i class="bi bi-pencil-square text-primary"></i> Edit Customer
                                         </a>
                                     </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Quotation" asp-action="Create" asp-route-customerId="@customer.CustomerId">
+                                            <i class="bi bi-cart text-success"></i> Mua hàng (Tạo báo giá)
+                                        </a>
+                                    </li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <form asp-action="Delete" asp-route-id="@customer.CustomerId" method="post" class="d-inline w-100" onsubmit="return confirm('Bạn có chắc chắn muốn xóa khách hàng này?');">

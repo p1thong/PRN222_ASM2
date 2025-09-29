@@ -10,6 +10,9 @@ namespace ASM1.Repository.Repositories
         IOrderRepository Orders { get; }
         ISalesContractRepository SalesContracts { get; }
         IPaymentRepository Payments { get; }
+        IManufacturerRepository Manufacturers { get; }
+        IVehicleModelRepository VehicleModels { get; }
+        IVehicleVariantRepository VehicleVariants { get; }
         Task<int> SaveChangesAsync();
     }
 }

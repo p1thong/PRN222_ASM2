@@ -1,0 +1,492 @@
+@model ASM1.Service.Models.QuotationCreateViewModel
+@{
+    ViewData["Title"] = "Create Quotation";
+    var customer = ViewBag.Customer as ASM1.Service.Models.CustomerViewModel;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-file-earmark-text"></i> Tạo báo giá mới
+                    </h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <!-- Loading Overlay -->
+                    <div id="loadingOverlay" class="d-none">
+                        <div class="loading-content">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-3 mb-0">Đang tạo báo giá...</p>
+                        </div>
+                    </div>
+
+                    <!-- Notification Toast -->
+                    <div class="toast-container position-fixed top-0 end-0 p-3">
+                        <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                            <div class="toast-header">
+                                <div class="rounded me-2" id="toastIcon" style="width: 20px; height: 20px;"></div>
+                                <strong class="me-auto" id="toastTitle">Thông báo</strong>
+                                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                            <div class="toast-body" id="toastMessage">
+                                <!-- Message will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customer Information -->
+                    @if (customer != null)
+                    {
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-person"></i> Thông tin khách hàng
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Họ tên:</strong> @customer.FullName</p>
+                                        <p><strong>Email:</strong> @customer.Email</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Điện thoại:</strong> @(customer.Phone ?? "Chưa có")</p>
+                                        <p><strong>Dealer:</strong> @customer.DealerName</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Quotation Form -->
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="CustomerId" value="@ViewBag.CustomerId" />
+                        <input type="hidden" asp-for="DealerId" value="@ViewBag.DealerId" />
+                        <input type="hidden" asp-for="BasePrice" id="HiddenBasePrice" />
+                        <input type="hidden" asp-for="DiscountAmount" />
+                        <input type="hidden" asp-for="AdditionalFees" />
+                        <input type="hidden" asp-for="TaxRate" />
+                        <input type="hidden" asp-for="DiscountDescription" />
+                        <input type="hidden" asp-for="FeesDescription" />
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="VariantId" class="form-label">
+                                    <i class="bi bi-car-front"></i> Vehicle Variant *
+                                </label>
+                                <select asp-for="VariantId" class="form-select" id="VariantId" required>
+                                    <option value="">-- Chọn variant xe --</option>
+                                    @if (ViewBag.VehicleVariants != null)
+                                    {
+                                        @foreach (var variant in (IEnumerable<ASM1.Service.Models.VehicleVariantViewModel>)ViewBag.VehicleVariants)
+                                        {
+                                            <option value="@variant.VariantId" data-price="@variant.Price">
+                                                @variant.FullName - @(variant.Color ?? "N/A") - @(variant.ProductYear?.ToString() ?? "N/A") 
+                                                @if (variant.Price.HasValue)
+                                                {
+                                                    <text>(₫@((variant.Price.Value * 1000).ToString("N0")))</text>
+                                                }
+                                            </option>
+                                        }
+                                    }
+                                </select>
+                                <span asp-validation-for="VariantId" class="text-danger"></span>
+                                <div class="form-text">Chọn variant xe muốn báo giá</div>
+                            </div>
+                        </div>
+
+                        <!-- Pricing Calculator Section -->
+                        <div class="card mb-3" id="pricingSection" style="display: none;">
+                            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-calculator"></i> Tính toán giá chi tiết
+                                </h6>
+                                <button type="button" class="btn btn-warning btn-sm" id="applyPromotionsBtn">
+                                    <i class="bi bi-percent"></i> Áp dụng khuyến mãi tự động
+                                </button>
+                            </div>
+                            <div class="card-body">
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="BasePriceDisplay" class="form-label">Giá gốc xe</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">₫</span>
+                                                <input type="number" step="1000000" class="form-control" id="BasePriceDisplay" readonly>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="DiscountAmountDisplay" class="form-label">
+                                                Số tiền giảm giá
+                                            </label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">₫</span>
+                                                <input type="number" step="100000" min="0" class="form-control" id="DiscountAmountDisplay">
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">
+                                                Tỷ lệ giảm giá (%)
+                                            </label>
+                                            <div class="input-group">
+                                                <input type="number" id="DiscountPercentage" class="form-control" placeholder="0" min="0" max="100" step="0.1" />
+                                                <span class="input-group-text">%</span>
+                                                <button type="button" class="btn btn-primary" id="applyPercentageBtn">
+                                                    <i class="bi bi-calculator"></i> Áp dụng
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="DiscountDescriptionDisplay" class="form-label">Mô tả giảm giá</label>
+                                            <input type="text" class="form-control" id="DiscountDescriptionDisplay" placeholder="Ví dụ: Khuyến mãi đặc biệt">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="AdditionalFeesDisplay" class="form-label">Phí bổ sung</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">₫</span>
+                                                <input type="number" step="1000000" min="0" class="form-control" id="AdditionalFeesDisplay">
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="FeesDescriptionDisplay" class="form-label">Mô tả phí bổ sung</label>
+                                            <input type="text" class="form-control" id="FeesDescriptionDisplay" placeholder="VD: Phí đăng ký, bảo hiểm">
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="TaxRateDisplay" class="form-label">Thuế (%)</label>
+                                            <div class="input-group">
+                                                <input type="number" step="0.01" min="0" max="1" class="form-control" id="TaxRateDisplay" value="0.1">
+                                                <span class="input-group-text">%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Price Breakdown -->
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6>Chi tiết tính giá:</h6>
+                                        <table class="table table-sm">
+                                            <tbody>
+                                                <tr>
+                                                    <td>Giá xe gốc:</td>
+                                                    <td class="text-end" id="displayBasePrice">₫0</td>
+                                                </tr>
+                                                <tr class="text-success">
+                                                    <td>Giảm giá:</td>
+                                                    <td class="text-end" id="displayDiscount">-₫0</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Phí bổ sung:</td>
+                                                    <td class="text-end" id="displayFees">+₫0</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Thuế:</td>
+                                                    <td class="text-end" id="displayTax">+₫0</td>
+                                                </tr>
+                                                <tr class="fw-bold border-top">
+                                                    <td>Giá cuối cùng:</td>
+                                                    <td class="text-end text-primary" id="displayFinalPrice">₫0</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="Status" class="form-label">
+                                <i class="bi bi-flag"></i> Trạng thái
+                            </label>
+                            <select asp-for="Status" class="form-select" id="Status">
+                                <option value="Pending">Pending - Đang chờ</option>
+                                <option value="Approved">Approved - Đã duyệt</option>
+                                <option value="Rejected">Rejected - Từ chối</option>
+                            </select>
+                            <span asp-validation-for="Status" class="text-danger"></span>
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-controller="Customer" asp-action="Index" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Quay lại danh sách khách hàng
+                            </a>
+                            <div>
+                                <button type="reset" class="btn btn-outline-secondary me-2">
+                                    <i class="bi bi-arrow-clockwise"></i> Reset
+                                </button>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-check-circle"></i> Tạo báo giá
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <style>
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .loading-content .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+    </style>
+    
+    <script>
+        $(document).ready(function() {
+            // Toast notification functions
+            function showToast(message, type = 'info', title = 'Thông báo') {
+                const toast = $('#notificationToast');
+                const toastIcon = $('#toastIcon');
+                const toastTitle = $('#toastTitle');
+                const toastMessage = $('#toastMessage');
+                
+                // Set icon and color based on type
+                let iconClass = '';
+                let bgColor = '';
+                
+                switch(type) {
+                    case 'success':
+                        iconClass = 'bg-success';
+                        bgColor = 'text-success';
+                        break;
+                    case 'error':
+                        iconClass = 'bg-danger';
+                        bgColor = 'text-danger';
+                        break;
+                    case 'warning':
+                        iconClass = 'bg-warning';
+                        bgColor = 'text-warning';
+                        break;
+                    default:
+                        iconClass = 'bg-info';
+                        bgColor = 'text-info';
+                }
+                
+                toastIcon.removeClass().addClass('rounded me-2 ' + iconClass).css({width: '20px', height: '20px'});
+                toastTitle.removeClass().addClass('me-auto ' + bgColor).text(title);
+                toastMessage.text(message);
+                
+                // Show toast
+                const bsToast = new bootstrap.Toast(toast[0]);
+                bsToast.show();
+            }
+            
+            function showLoading() {
+                $('#loadingOverlay').removeClass('d-none');
+            }
+            
+            function hideLoading() {
+                $('#loadingOverlay').addClass('d-none');
+            }
+            function formatCurrency(amount) {
+                return '₫' + Math.round(amount).toLocaleString('vi-VN');
+            }
+
+            function calculateFinalPrice() {
+                var basePrice = parseFloat($('#BasePriceDisplay').val()) || 0;
+                var discountAmount = parseFloat($('#DiscountAmountDisplay').val()) || 0;
+                var additionalFees = parseFloat($('#AdditionalFeesDisplay').val()) || 0;
+                var taxRate = parseFloat($('#TaxRateDisplay').val()) || 0;
+
+                // Sync hidden fields
+                $('#HiddenBasePrice').val(basePrice);
+                $('input[name="DiscountAmount"]').val(discountAmount);
+                $('input[name="AdditionalFees"]').val(additionalFees);
+                $('input[name="TaxRate"]').val(taxRate);
+                $('input[name="DiscountDescription"]').val($('#DiscountDescriptionDisplay').val());
+                $('input[name="FeesDescription"]').val($('#FeesDescriptionDisplay').val());
+
+                var taxAmount = (basePrice - discountAmount + additionalFees) * taxRate;
+                var finalPrice = basePrice - discountAmount + additionalFees + taxAmount;
+
+                // Update display
+                $('#displayBasePrice').text(formatCurrency(basePrice));
+                $('#displayDiscount').text('-' + formatCurrency(discountAmount));
+                $('#displayFees').text('+' + formatCurrency(additionalFees));
+                $('#displayTax').text('+' + formatCurrency(taxAmount));
+                $('#displayFinalPrice').text(formatCurrency(finalPrice));
+
+                return finalPrice;
+            }
+
+            function applyPercentageDiscount() {
+                var basePrice = parseFloat($('#BasePriceDisplay').val()) || 0;
+                var percentage = parseFloat($('#DiscountPercentage').val()) || 0;
+                
+                if (basePrice <= 0) {
+                    showToast('Vui lòng chọn xe trước khi áp dụng giảm giá!', 'warning', 'Cảnh báo');
+                    return;
+                }
+                
+                if (percentage < 0 || percentage > 100) {
+                    showToast('Tỷ lệ giảm giá phải từ 0% đến 100%!', 'error', 'Lỗi');
+                    return;
+                }
+                
+                var discountAmount = basePrice * (percentage / 100);
+                $('#DiscountAmountDisplay').val(discountAmount);
+                $('#DiscountDescriptionDisplay').val('Giảm ' + percentage + '% trên tổng giá xe');
+                
+                calculateFinalPrice();
+                
+                // Show success message
+                showToast('Đã áp dụng giảm giá ' + percentage + '% thành công!', 'success', 'Thành công');
+            }
+
+            $('#VariantId').change(function() {
+                var selectedOption = $(this).find('option:selected');
+                var price = selectedOption.data('price');
+                
+                if (price) {
+                    // Convert price to VND (multiply by 1000)
+                    var realPrice = price * 1000;
+                    $('#BasePriceDisplay').val(realPrice);
+                    $('#HiddenBasePrice').val(realPrice);
+                    $('#pricingSection').show();
+                    
+                    // Reset discount fields
+                    $('#DiscountAmountDisplay').val(0);
+                    $('#DiscountDescriptionDisplay').val('');
+                    $('#DiscountPercentage').val('');
+                    
+                    calculateFinalPrice();
+                    
+                    // Show success message
+                    var variantName = selectedOption.text().split(' - ')[0];
+                    showToast('Đã chọn xe ' + variantName + ' thành công!', 'success', 'Đã chọn xe');
+                } else {
+                    $('#BasePriceDisplay').val('');
+                    $('#HiddenBasePrice').val('');
+                    $('#pricingSection').hide();
+                }
+            });
+
+            // Apply percentage discount button
+            $('#applyPercentageBtn').click(function() {
+                applyPercentageDiscount();
+            });
+
+            // Auto-calculate when discount amount changes
+            $('#DiscountAmountDisplay, #AdditionalFeesDisplay, #TaxRateDisplay').on('input', function() {
+                calculateFinalPrice();
+            });
+
+            // Enter key support for percentage input
+            $('#DiscountPercentage').keypress(function(e) {
+                if (e.which == 13) {
+                    applyPercentageDiscount();
+                }
+            });
+
+            // Submit form with calculated price
+            $('form').on('submit', function(e) {
+                console.log('Form submit triggered');
+                
+                var finalPrice = calculateFinalPrice();
+                console.log('Final price calculated:', finalPrice);
+                
+                // Validate required fields
+                var customerId = $('input[name="CustomerId"]').val();
+                var dealerId = $('input[name="DealerId"]').val();
+                var variantId = $('select[name="VariantId"]').val();
+                
+                console.log('CustomerId:', customerId);
+                console.log('DealerId:', dealerId);
+                console.log('VariantId:', variantId);
+                
+                if (!variantId) {
+                    showToast('Vui lòng chọn variant xe trước khi tạo báo giá!', 'warning', 'Cảnh báo');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                if (finalPrice <= 0) {
+                    showToast('Giá cuối cùng không hợp lệ. Vui lòng kiểm tra lại thông tin!', 'error', 'Lỗi');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // Show loading
+                showLoading();
+                showToast('Đang tạo báo giá, vui lòng đợi...', 'info', 'Đang xử lý');
+                
+                // Create a hidden input for the final price
+                if ($('#HiddenFinalPrice').length === 0) {
+                    $('<input>').attr({
+                        type: 'hidden',
+                        id: 'HiddenFinalPrice',
+                        name: 'Price',
+                        value: Math.round(finalPrice)
+                    }).appendTo(this);
+                } else {
+                    $('#HiddenFinalPrice').val(Math.round(finalPrice));
+                }
+                
+                console.log('Form data ready for submission');
+                
+                // Add a delay to show loading effect
+                setTimeout(() => {
+                    // Don't prevent default - let form submit
+                }, 100);
+            });
+        });
+    </script>
+}

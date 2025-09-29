@@ -1,0 +1,163 @@
+@model ASM1.Service.Models.QuotationDetailViewModel
+@{
+    ViewData["Title"] = "Quotation Details";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="bi bi-file-earmark-text"></i> Chi tiết báo giá #@Model.QuotationId
+                    </h4>
+                    <div>
+                        @switch (Model.Status)
+                        {
+                            case "Pending":
+                                <span class="badge bg-warning fs-6">
+                                    <i class="bi bi-clock"></i> Pending
+                                </span>
+                                break;
+                            case "Approved":
+                                <span class="badge bg-success fs-6">
+                                    <i class="bi bi-check-circle"></i> Approved
+                                </span>
+                                break;
+                            case "Rejected":
+                                <span class="badge bg-danger fs-6">
+                                    <i class="bi bi-x-circle"></i> Rejected
+                                </span>
+                                break;
+                            default:
+                                <span class="badge bg-secondary fs-6">@Model.Status</span>
+                                break;
+                        }
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Customer Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card bg-light h-100">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-person"></i> Thông tin khách hàng
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>Họ tên:</strong> @Model.CustomerName</p>
+                                    <p><strong>Email:</strong> @Model.CustomerEmail</p>
+                                    <p><strong>Điện thoại:</strong> @(Model.CustomerPhone ?? "Chưa có")</p>
+                                    <p><strong>Dealer:</strong> @Model.DealerName</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light h-100">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-car-front"></i> Thông tin xe
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>Hãng:</strong> @Model.VehicleBrand</p>
+                                    <p><strong>Model:</strong> @Model.VehicleModel</p>
+                                    <p><strong>Phiên bản:</strong> @Model.VehicleVersion</p>
+                                    <p><strong>Màu sắc:</strong> @(Model.VehicleColor ?? "Chưa xác định")</p>
+                                    <p><strong>Năm sản xuất:</strong> @(Model.VehicleYear?.ToString() ?? "Chưa xác định")</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Price Breakdown -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="bi bi-calculator"></i> Chi tiết tính giá
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-striped">
+                                        <tbody>
+                                            @foreach (var item in Model.PriceBreakdown)
+                                            {
+                                                <tr class="@(item.Type == "discount" ? "text-success" : item.Type == "base" ? "fw-bold" : "")">
+                                                    <td>@item.Description</td>
+                                                    <td class="text-end">
+                                                        @if (item.Amount >= 0)
+                                                        {
+                                                            <span>+₫@(item.Amount.ToString("N0"))</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span>₫@(item.Amount.ToString("N0"))</span>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
+                                            <tr class="table-dark fw-bold">
+                                                <td><strong>Tổng giá cuối cùng</strong></td>
+                                                <td class="text-end"><strong>₫@(Model.FinalPrice.ToString("N0"))</strong></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="alert alert-info">
+                                        <h6><i class="bi bi-info-circle"></i> Thông tin bổ sung</h6>
+                                        @if (!string.IsNullOrEmpty(Model.DiscountDescription))
+                                        {
+                                            <p><strong>Giảm giá:</strong> @Model.DiscountDescription</p>
+                                        }
+                                        @if (!string.IsNullOrEmpty(Model.FeesDescription))
+                                        {
+                                            <p><strong>Phí bổ sung:</strong> @Model.FeesDescription</p>
+                                        }
+                                        <p><strong>Thuế suất:</strong> @(Model.TaxRate.ToString("P"))</p>
+                                        <p><strong>Ngày tạo:</strong> @(Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa xác định")</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary -->
+                    <div class="alert alert-success">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-currency-dollar"></i> Giá báo giá cuối cùng
+                                </h5>
+                                <p class="mb-0">Giá này đã bao gồm tất cả các khoản phí và thuế</p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <span class="display-6 text-success fw-bold">₫@(Model.FinalPrice.ToString("N0"))</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Actions -->
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Quay lại danh sách
+                        </a>
+                        <div>
+                            <a asp-controller="Customer" asp-action="Index" class="btn btn-outline-primary me-2">
+                                <i class="bi bi-people"></i> Danh sách khách hàng
+                            </a>
+                            <form asp-action="Delete" asp-route-id="@Model.QuotationId" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa báo giá này?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="bi bi-trash"></i> Xóa báo giá
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

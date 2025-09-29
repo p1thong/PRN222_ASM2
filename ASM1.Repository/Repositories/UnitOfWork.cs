@@ -11,6 +11,9 @@ namespace ASM1.Repository.Repositories
         private IOrderRepository? _orderRepository;
         private ISalesContractRepository? _salesContractRepository;
         private IPaymentRepository? _paymentRepository;
+        private IManufacturerRepository? _manufacturerRepository;
+        private IVehicleModelRepository? _vehicleModelRepository;
+        private IVehicleVariantRepository? _vehicleVariantRepository;
 
         public UnitOfWork(CarSalesDbContext context)
         {
@@ -22,6 +25,9 @@ namespace ASM1.Repository.Repositories
         public IOrderRepository Orders => _orderRepository ??= new OrderRepository(_context);
         public ISalesContractRepository SalesContracts => _salesContractRepository ??= new SalesContractRepository(_context);
         public IPaymentRepository Payments => _paymentRepository ??= new PaymentRepository(_context);
+        public IManufacturerRepository Manufacturers => _manufacturerRepository ??= new ManufacturerRepository(_context);
+        public IVehicleModelRepository VehicleModels => _vehicleModelRepository ??= new VehicleModelRepository(_context);
+        public IVehicleVariantRepository VehicleVariants => _vehicleVariantRepository ??= new VehicleVariantRepository(_context);
 
         public async Task<int> SaveChangesAsync()
         {

@@ -97,7 +97,7 @@ namespace ASM1.Service.Services
                 var welcomeCode = ASM1.Service.Utilities.PromotionCodeGenerator.GenerateWelcomeCode(customer.CustomerId);
                 
                 _logger.LogInformation("Thêm khách hàng thành công: {Email}, Welcome Code: {Code}", customerVm.Email, welcomeCode);
-                return ServiceResponse.SuccessResponse($"Thêm khách hàng thành công! 🎉 Chúc mừng! Bạn nhận được mã khuyến mãi 5%: <strong>{welcomeCode}</strong> cho đơn hàng đầu tiên.");
+                return ServiceResponse.SuccessResponse($"Thêm khách hàng thành công! 🎉 Chúc mừng! Bạn nhận được mã khuyến mãi: <strong>{welcomeCode}</strong> cho đơn hàng đầu tiên.");
             }
             catch (Exception ex)
             {

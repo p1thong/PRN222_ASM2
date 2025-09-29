@@ -32,6 +32,9 @@ builder.Services.AddScoped<IQuotationRepository, QuotationRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<ISalesContractRepository, SalesContractRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IManufacturerRepository, ManufacturerRepository>();
+builder.Services.AddScoped<IVehicleModelRepository, VehicleModelRepository>();
+builder.Services.AddScoped<IVehicleVariantRepository, VehicleVariantRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 //add services
@@ -41,6 +44,10 @@ builder.Services.AddScoped<IQuotationService, QuotationService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<ISalesContractService, SalesContractService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IManufacturerService, ManufacturerService>();
+builder.Services.AddScoped<IVehicleModelService, VehicleModelService>();
+builder.Services.AddScoped<IVehicleVariantService, VehicleVariantService>();
+builder.Services.AddScoped<IPromotionRuleService, PromotionRuleService>();
 
 //add AutoMapper - cần import từ assembly chứa MappingProfile
 builder.Services.AddAutoMapper(typeof(ASM1.Service.Models.MappingProfile));

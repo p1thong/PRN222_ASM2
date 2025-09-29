@@ -29,6 +29,9 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Customer" asp-action="Index">Customer</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Quotation" asp-action="Index">Quotations</a>
+                        </li>
                     </ul>
                     <ul class="navbar-nav ms-auto">
                         @if (Context.Session.GetString("UserId") != null)

@@ -134,11 +134,6 @@ namespace ASM1.WebMVC.Controllers
                 return RedirectToAction("Index");
             }
 
-            // Kiểm tra xem customer có phải là customer mới (chưa có order)
-            var isNewCustomer = await _customerService.IsNewCustomerAsync(id);
-            ViewBag.IsNewCustomer = isNewCustomer;
-            ViewBag.WelcomeDiscount = 5; // 5% discount
-
             return View(response.Data);
         }
 

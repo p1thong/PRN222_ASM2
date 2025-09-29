@@ -25,7 +25,7 @@ namespace ASM1.Service.Services
         {
             try
             {
-                var customers = await _unitOfWork.Customers.GetAllAsync();
+                var customers = await _unitOfWork.Customers.GetAllWithDealerAsync();
                 var customerViewModels = _mapper.Map<IEnumerable<CustomerViewModel>>(customers);
                 return ServiceResponse<IEnumerable<CustomerViewModel>>.SuccessResponse(customerViewModels, "Lấy danh sách khách hàng thành công");
             }
@@ -45,7 +45,7 @@ namespace ASM1.Service.Services
                     return ServiceResponse<CustomerViewModel>.ErrorResponse("ID khách hàng không hợp lệ", "ID phải lớn hơn 0");
                 }
 
-                var customer = await _unitOfWork.Customers.GetByIdAsync(id);
+                var customer = await _unitOfWork.Customers.GetByIdWithDealerAsync(id);
                 if (customer == null)
                 {
                     return ServiceResponse<CustomerViewModel>.ErrorResponse("Không tìm thấy khách hàng", $"Khách hàng với ID {id} không tồn tại");
@@ -116,8 +116,13 @@ namespace ASM1.Service.Services
                     return ServiceResponse.ErrorResponse("Không tìm thấy khách hàng", $"Khách hàng với ID {customerVm.CustomerId} không tồn tại");
                 }
 
-                var customer = _mapper.Map<Customer>(customerVm);
-                await _unitOfWork.Customers.UpdateAsync(customer);
+                // Cập nhật properties của existing entity thay vì tạo entity mới
+                existingCustomer.FullName = customerVm.FullName;
+                existingCustomer.Email = customerVm.Email;
+                existingCustomer.Phone = customerVm.Phone;
+                existingCustomer.Birthday = customerVm.Birthday;
+                existingCustomer.DealerId = customerVm.DealerId;
+
                 await _unitOfWork.SaveChangesAsync();
                 
                 _logger.LogInformation("Cập nhật khách hàng thành công: {CustomerId}", customerVm.CustomerId);

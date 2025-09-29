@@ -1,0 +1,106 @@
+@model ASM1.Service.Models.CustomerViewModel
+@{
+    ViewData["Title"] = "Customer Details";
+}
+
+<h2>Customer Details</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        @if (TempData["DetailErrors"] != null)
+        {
+            <br><small>Chi tiết: @TempData["DetailErrors"]</small>
+        }
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-header">
+        <h4><i class="bi bi-person-circle"></i> Customer Information</h4>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Customer ID:</label>
+                    <p class="form-control-plaintext">@Model.CustomerId</p>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Full Name:</label>
+                    <p class="form-control-plaintext">@Model.FullName</p>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Email:</label>
+                    <p class="form-control-plaintext">
+                        <a href="mailto:@Model.Email">@Model.Email</a>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Dealer ID:</label>
+                    <p class="form-control-plaintext">@Model.DealerId</p>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Phone:</label>
+                    <p class="form-control-plaintext">
+                        @if (!string.IsNullOrEmpty(Model.Phone))
+                        {
+                            <a href="tel:@Model.Phone">@Model.Phone</a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Not provided</span>
+                        }
+                    </p>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Birthday:</label>
+                    <p class="form-control-plaintext">
+                        @if (Model.Birthday.HasValue)
+                        {
+                            @Model.Birthday.Value.ToString("dd/MM/yyyy")
+                        }
+                        else
+                        {
+                            <span class="text-muted">Not provided</span>
+                        }
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a class="btn btn-primary" asp-action="Update" asp-route-id="@Model.CustomerId">
+        <i class="bi bi-pencil-square"></i> Edit Customer
+    </a>
+    
+    <a class="btn btn-secondary" asp-action="Index">
+        <i class="bi bi-arrow-left"></i> Back to List
+    </a>
+    
+    <form asp-action="Delete" asp-route-id="@Model.CustomerId" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa khách hàng này?');">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Delete Customer
+        </button>
+    </form>
+</div>

@@ -1,22 +1,37 @@
-@model ASM1.Service.Models.CustomerCreateViewModel
+@model ASM1.Service.Models.CustomerViewModel
 @{
-    ViewData["Title"] = "Add Customer";
+    ViewData["Title"] = "Update Customer";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h2><i class="bi bi-person-plus"></i> Add New Customer</h2>
-        <p class="text-muted">Create a new customer record</p>
+        <h2><i class="bi bi-pencil-square"></i> Update Customer</h2>
+        <p class="text-muted">Edit customer information</p>
     </div>
 </div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        @if (TempData["DetailErrors"] != null)
+        {
+            <br><small>Chi tiết: @TempData["DetailErrors"]</small>
+        }
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
 
 <div class="card">
     <div class="card-header">
         <h5 class="mb-0"><i class="bi bi-form"></i> Customer Information</h5>
     </div>
     <div class="card-body">
-        <form asp-action="Add" method="post">
+        <form asp-action="Update" method="post">
             @Html.AntiForgeryToken()
+            @Html.HiddenFor(model => model.CustomerId)
+            @Html.HiddenFor(model => model.DealerId)
+            
             <div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
@@ -49,7 +64,7 @@
                         <label asp-for="Birthday" class="form-label">
                             <i class="bi bi-calendar"></i> Birthday
                         </label>
-                        <input asp-for="Birthday" class="form-control" type="date" />
+                        <input asp-for="Birthday" type="date" class="form-control" />
                         <span asp-validation-for="Birthday" class="text-danger"></span>
                     </div>
                 </div>
@@ -58,11 +73,14 @@
             <hr>
             
             <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-success">
-                    <i class="bi bi-check-circle"></i> Create Customer
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> Update Customer
                 </button>
-                <a asp-action="Index" class="btn btn-secondary">
+                <a class="btn btn-secondary" asp-action="Index">
                     <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+                <a class="btn btn-info" asp-action="Details" asp-route-id="@Model.CustomerId">
+                    <i class="bi bi-eye"></i> View Details
                 </a>
             </div>
         </form>
@@ -71,50 +89,4 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    
-    <script>
-        $(document).ready(function() {
-            console.log('Add Customer page loaded');
-            
-            // Log form data khi submit
-            $('form').on('submit', function(e) {
-                console.log('=== FORM SUBMIT DEBUG ===');
-                console.log('Form action:', $(this).attr('action'));
-                console.log('Form method:', $(this).attr('method'));
-                
-                // Log tất cả form data
-                var formData = {};
-                $(this).serializeArray().forEach(function(item) {
-                    formData[item.name] = item.value;
-                });
-                console.log('Form data:', formData);
-                
-                // Log validation state
-                console.log('Form valid:', $(this).valid());
-                console.log('Validation errors:', $(this).find('.field-validation-error').length);
-                
-                // Log session info từ browser (nếu có)
-                console.log('Current URL:', window.location.href);
-                console.log('User Agent:', navigator.userAgent);
-                console.log('Timestamp:', new Date().toISOString());
-            });
-            
-            // Log input changes
-            $('input, select, textarea').on('change', function() {
-                console.log('Input changed:', {
-                    name: $(this).attr('name'),
-                    value: $(this).val(),
-                    type: $(this).attr('type')
-                });
-            });
-            
-            // Log validation errors
-            $('form').on('invalid-form.validate', function(e) {
-                console.log('=== VALIDATION ERRORS ===');
-                var validator = $(this).validate();
-                console.log('Invalid elements:', validator.numberOfInvalids());
-                console.log('Error messages:', validator.errorList);
-            });
-        });
-    </script>
 }

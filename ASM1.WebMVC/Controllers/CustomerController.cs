@@ -122,5 +122,77 @@ namespace ASM1.WebMVC.Controllers
             ModelState.AddModelError(string.Empty, "Không tìm thấy Dealer đang đăng nhập. Vui lòng đăng nhập lại.");
             return View(model);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            var response = await _customerService.GetByIdAsync(id);
+            
+            if (!response.Success || response.Data == null)
+            {
+                this.HandleResponseWithTempData(response);
+                return RedirectToAction("Index");
+            }
+
+            return View(response.Data);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Update(int id)
+        {
+            // Kiểm tra quyền truy cập
+            if (!IsDealerUser())
+            {
+                TempData["Error"] = "Bạn không có quyền truy cập chức năng này.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var response = await _customerService.GetByIdAsync(id);
+            
+            if (!response.Success || response.Data == null)
+            {
+                this.HandleResponseWithTempData(response);
+                return RedirectToAction("Index");
+            }
+
+            return View(response.Data);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Update(CustomerViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // Kiểm tra quyền truy cập
+            if (!IsDealerUser())
+            {
+                TempData["Error"] = "Bạn không có quyền truy cập chức năng này.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var response = await _customerService.UpdateAsync(model);
+            return HandleServiceResponse(response, "Index", "Update", model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            // Kiểm tra quyền truy cập
+            if (!IsDealerUser())
+            {
+                TempData["Error"] = "Bạn không có quyền truy cập chức năng này.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var response = await _customerService.DeleteAsync(id);
+            this.HandleResponseWithTempData(response);
+            
+            return RedirectToAction("Index");
+        }
     }
 }

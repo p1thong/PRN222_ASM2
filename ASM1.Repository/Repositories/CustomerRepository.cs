@@ -19,5 +19,25 @@ namespace ASM1.Repository.Repositories
 		{
 			return await IdGenerator.GenerateUniqueCustomerIdAsync(_context);
 		}
+
+		/// <summary>
+		/// Lấy tất cả customers với thông tin dealer
+		/// </summary>
+		public async Task<IEnumerable<Customer>> GetAllWithDealerAsync()
+		{
+			return await _context.Set<Customer>()
+				.Include(c => c.Dealer)
+				.ToListAsync();
+		}
+
+		/// <summary>
+		/// Lấy customer theo ID với thông tin dealer
+		/// </summary>
+		public async Task<Customer?> GetByIdWithDealerAsync(int id)
+		{
+			return await _context.Set<Customer>()
+				.Include(c => c.Dealer)
+				.FirstOrDefaultAsync(c => c.CustomerId == id);
+		}
 	}
 }

@@ -7,7 +7,9 @@ namespace ASM1.Service.Models
     {
         public MappingProfile()
         {
-            CreateMap<Customer, CustomerViewModel>().ReverseMap();
+            CreateMap<Customer, CustomerViewModel>()
+                .ForMember(dest => dest.DealerName, opt => opt.MapFrom(src => src.Dealer != null ? src.Dealer.FullName : ""))
+                .ReverseMap();
             CreateMap<CustomerCreateViewModel, Customer>();
 
             CreateMap<Quotation, QuotationViewModel>().ReverseMap();

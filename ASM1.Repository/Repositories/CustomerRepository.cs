@@ -39,5 +39,16 @@ namespace ASM1.Repository.Repositories
 				.Include(c => c.Dealer)
 				.FirstOrDefaultAsync(c => c.CustomerId == id);
 		}
+
+		/// <summary>
+		/// Kiểm tra xem customer có phải là khách hàng mới (chưa có order nào)
+		/// </summary>
+		public async Task<bool> IsNewCustomerAsync(int customerId)
+		{
+			var orderCount = await _context.Set<Order>()
+				.Where(o => o.CustomerId == customerId)
+				.CountAsync();
+			return orderCount == 0;
+		}
 	}
 }

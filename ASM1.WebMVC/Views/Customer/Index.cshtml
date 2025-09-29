@@ -43,7 +43,7 @@
                     <th>Email</th>
                     <th>Phone</th>
                     <th>Birthday</th>
-                    <th style="min-width: 200px;">Actions</th>
+                    <th style="width: 120px;">Actions</th>
                 </tr>
             </thead>
     <tbody>
@@ -86,19 +86,31 @@
                             }
                         </td>
                         <td>
-                            <div class="btn-group" role="group">
-                                <a class="btn btn-info btn-sm" asp-action="Details" asp-route-id="@customer.CustomerId" title="View Details">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                <a class="btn btn-primary btn-sm" asp-action="Update" asp-route-id="@customer.CustomerId" title="Edit Customer">
-                                    <i class="bi bi-pencil-square"></i>
-                                </a>
-                                <form asp-action="Delete" asp-route-id="@customer.CustomerId" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa khách hàng này?');">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-danger btn-sm" title="Delete Customer">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-three-dots"></i> Actions
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" asp-action="Details" asp-route-id="@customer.CustomerId">
+                                            <i class="bi bi-eye text-info"></i> View Details
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-action="Update" asp-route-id="@customer.CustomerId">
+                                            <i class="bi bi-pencil-square text-primary"></i> Edit Customer
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form asp-action="Delete" asp-route-id="@customer.CustomerId" method="post" class="d-inline w-100" onsubmit="return confirm('Bạn có chắc chắn muốn xóa khách hàng này?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item text-danger" style="border: none; background: none; width: 100%; text-align: left;">
+                                                <i class="bi bi-trash text-danger"></i> Delete Customer
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
                             </div>
                         </td>
                     </tr>

@@ -93,8 +93,11 @@ namespace ASM1.Service.Services
                 await _unitOfWork.SaveChangesAsync();
                 Console.WriteLine("Changes saved successfully");
                 
-                _logger.LogInformation("Thêm khách hàng thành công: {Email}", customerVm.Email);
-                return ServiceResponse.SuccessResponse("Thêm khách hàng thành công");
+                // Tạo promotion code cho customer mới
+                var welcomeCode = ASM1.Service.Utilities.PromotionCodeGenerator.GenerateWelcomeCode(customer.CustomerId);
+                
+                _logger.LogInformation("Thêm khách hàng thành công: {Email}, Welcome Code: {Code}", customerVm.Email, welcomeCode);
+                return ServiceResponse.SuccessResponse($"Thêm khách hàng thành công! 🎉 Chúc mừng! Bạn nhận được mã khuyến mãi 5%: <strong>{welcomeCode}</strong> cho đơn hàng đầu tiên.");
             }
             catch (Exception ex)
             {
@@ -181,6 +184,19 @@ namespace ASM1.Service.Services
             }
 
             return errors;
+        }
+
+        public async Task<bool> IsNewCustomerAsync(int customerId)
+        {
+            try
+            {
+                return await _unitOfWork.Customers.IsNewCustomerAsync(customerId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi kiểm tra customer mới: {CustomerId}", customerId);
+                return false;
+            }
         }
     }
 }

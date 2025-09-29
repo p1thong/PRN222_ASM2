@@ -9,5 +9,6 @@ namespace ASM1.Service.Services.Interfaces
         Task<ServiceResponse> AddAsync(CustomerCreateViewModel customer);
         Task<ServiceResponse> UpdateAsync(CustomerViewModel customer);
         Task<ServiceResponse> DeleteAsync(int id);
+        Task<bool> IsNewCustomerAsync(int customerId);
     }
 }

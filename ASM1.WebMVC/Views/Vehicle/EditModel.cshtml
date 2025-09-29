@@ -1,0 +1,86 @@
+@model ASM1.Repository.Models.VehicleModel
+
+@{
+    ViewData["Title"] = "Edit Vehicle Model";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit"></i> Edit Vehicle Model
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="EditModel" method="post">
+                        <input type="hidden" asp-for="VehicleModelId" />
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Name" class="form-label">
+                                        <i class="fas fa-car"></i> Model Name *
+                                    </label>
+                                    <input asp-for="Name" class="form-control" placeholder="e.g., Camry, Civic, X5" />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Category" class="form-label">
+                                        <i class="fas fa-tags"></i> Category
+                                    </label>
+                                    <select asp-for="Category" class="form-select">
+                                        <option value="">Select Category</option>
+                                        <option value="Sedan">Sedan</option>
+                                        <option value="SUV">SUV</option>
+                                        <option value="Hatchback">Hatchback</option>
+                                        <option value="Coupe">Coupe</option>
+                                        <option value="Convertible">Convertible</option>
+                                        <option value="Pickup">Pickup</option>
+                                        <option value="Wagon">Wagon</option>
+                                        <option value="Minivan">Minivan</option>
+                                    </select>
+                                    <span asp-validation-for="Category" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ManufacturerId" class="form-label">
+                                <i class="fas fa-industry"></i> Manufacturer *
+                            </label>
+                            <select asp-for="ManufacturerId" class="form-select">
+                                <option value="">Select Manufacturer</option>
+                                @foreach (var manufacturer in ViewBag.Manufacturers as IEnumerable<ASM1.Repository.Models.Manufacturer>)
+                                {
+                                    <option value="@manufacturer.ManufacturerId">
+                                        @manufacturer.Name (@manufacturer.Country)
+                                    </option>
+                                }
+                            </select>
+                            <span asp-validation-for="ManufacturerId" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Models" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-arrow-left"></i> Back to List
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save"></i> Update Model
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+}

@@ -6,3 +6,48 @@
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title mb-4">Vehicles Management</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <a href="@Url.Action("Index", "Manufacturer")" 
+                               class="btn btn-primary">
+                                <i class="fas fa-building"></i>
+                                Hãng xe
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <a href="@Url.Action("Models", "Vehicle")" 
+                               class="btn btn-success">
+                                <i class="fas fa-car"></i>
+                                Tất cả mẫu xe
+                            </a>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <a href="@Url.Action("CreateModel", "Vehicle")" 
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-plus"></i>
+                                Thêm mẫu xe
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <a href="@Url.Action("CreateVariant", "Vehicle")" 
+                               class="btn btn-outline-success btn-sm">
+                                <i class="fas fa-plus"></i>
+                                Thêm phiên bản
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

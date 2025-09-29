@@ -5,7 +5,13 @@ using ASM1.Service.Services;
 using ASM1.Service.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-var builder = WebApplication.CreateBuilder(args);
+var options = new WebApplicationOptions
+{
+    Args = args,
+    WebRootPath = "wwwroot"
+};
+
+var builder = WebApplication.CreateBuilder(options);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -26,12 +32,15 @@ builder.Services.AddDbContext<CarSalesDbContext>(options =>
 
 //add repositories
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 
 //add services
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IVehicleService, VehicleService>();
 
 
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

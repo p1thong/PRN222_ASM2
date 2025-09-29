@@ -27,13 +27,23 @@ builder.Services.AddDbContext<CarSalesDbContext>(options =>
 
 //add repositories
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<IQuotationRepository, QuotationRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<ISalesContractRepository, SalesContractRepository>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
 
 //add services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
-builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddScoped<IQuotationService, QuotationService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<ISalesContractService, SalesContractService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+
+//add AutoMapper - cần import từ assembly chứa MappingProfile
+builder.Services.AddAutoMapper(typeof(ASM1.Service.Models.MappingProfile));
 
 
 var app = builder.Build();

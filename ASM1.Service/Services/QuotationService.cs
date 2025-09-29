@@ -40,11 +40,17 @@ namespace ASM1.Service.Services
 
         public async Task<QuotationDetailViewModel?> GetDetailsByIdAsync(int id)
         {
-            var quotation = await _unitOfWork.Quotations.GetByIdAsync(id);
+            var quotation = await _unitOfWork.Quotations.GetQuotationWithDetailsAsync(id);
             if (quotation == null) return null;
 
+            // Debug: Check what we got
+            Console.WriteLine($"Quotation ID: {quotation.QuotationId}");
+            Console.WriteLine($"Customer is null: {quotation.Customer == null}");
+            Console.WriteLine($"Dealer is null: {quotation.Dealer == null}");
+            Console.WriteLine($"Variant is null: {quotation.Variant == null}");
+
             var variant = quotation.Variant;
-            var basePrice = variant.Price ?? 0;
+            var basePrice = variant?.Price ?? 0;
             
             // For existing quotations, we'll extract pricing components from the stored Price
             // This is a simplified approach - in reality, you might want to store these components separately
@@ -59,14 +65,14 @@ namespace ASM1.Service.Services
             var quotationDetail = new QuotationDetailViewModel
             {
                 QuotationId = quotation.QuotationId,
-                CustomerName = quotation.Customer.FullName,
-                CustomerEmail = quotation.Customer.Email,
-                CustomerPhone = quotation.Customer.Phone,
-                VehicleBrand = quotation.Variant.VehicleModel.Manufacturer.Name,
-                VehicleModel = quotation.Variant.VehicleModel.Name,
-                VehicleVersion = quotation.Variant.Version,
-                VehicleColor = quotation.Variant.Color,
-                VehicleYear = quotation.Variant.ProductYear,
+                CustomerName = quotation.Customer?.FullName ?? "Unknown Customer",
+                CustomerEmail = quotation.Customer?.Email ?? "No Email",
+                CustomerPhone = quotation.Customer?.Phone ?? "No Phone",
+                VehicleBrand = quotation.Variant?.VehicleModel?.Manufacturer?.Name ?? "Unknown Brand",
+                VehicleModel = quotation.Variant?.VehicleModel?.Name ?? "Unknown Model",
+                VehicleVersion = quotation.Variant?.Version ?? "Unknown Version",
+                VehicleColor = quotation.Variant?.Color ?? "Unknown Color",
+                VehicleYear = quotation.Variant?.ProductYear,
                 VehicleBasePrice = basePrice,
                 DiscountAmount = estimatedDiscount,
                 AdditionalFees = estimatedFees,
@@ -74,8 +80,8 @@ namespace ASM1.Service.Services
                 DiscountDescription = "Khuyến mãi tháng",
                 FeesDescription = "Phí đăng ký, bảo hiểm",
                 CreatedAt = quotation.CreatedAt,
-                Status = quotation.Status,
-                DealerName = quotation.Dealer.FullName
+                Status = quotation.Status ?? "Unknown",
+                DealerName = quotation.Dealer?.FullName ?? "Unknown Dealer"
             };
 
             return quotationDetail;
@@ -178,6 +184,44 @@ namespace ASM1.Service.Services
         {
             await _unitOfWork.Quotations.DeleteAsync(id);
             await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task<bool> ApproveAsync(int id)
+        {
+            try
+            {
+                var quotation = await _unitOfWork.Quotations.GetByIdAsync(id);
+                if (quotation == null)
+                    return false;
+
+                quotation.Status = "Approved";
+                await _unitOfWork.Quotations.UpdateAsync(quotation);
+                await _unitOfWork.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> CancelAsync(int id)
+        {
+            try
+            {
+                var quotation = await _unitOfWork.Quotations.GetByIdAsync(id);
+                if (quotation == null)
+                    return false;
+
+                quotation.Status = "Cancelled";
+                await _unitOfWork.Quotations.UpdateAsync(quotation);
+                await _unitOfWork.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

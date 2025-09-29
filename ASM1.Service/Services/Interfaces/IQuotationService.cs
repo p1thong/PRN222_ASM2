@@ -11,6 +11,8 @@ namespace ASM1.Service.Services.Interfaces
         Task AddAsync(QuotationCreateViewModel quotation);
         Task UpdateAsync(QuotationViewModel quotation);
         Task DeleteAsync(int id);
+        Task<bool> ApproveAsync(int id);
+        Task<bool> CancelAsync(int id);
         Task<QuotationDetailViewModel> CalculatePricingAsync(QuotationPricingRequest request);
         Task<QuotationDetailViewModel> CalculatePricingWithPromotionsAsync(int variantId, int customerId, decimal additionalFees = 0, decimal taxRate = 0.1m);
     }

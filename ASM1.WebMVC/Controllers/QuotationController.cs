@@ -225,5 +225,172 @@ namespace ASM1.WebMVC.Controllers
 
             return RedirectToAction("Index");
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<JsonResult> Approve(int id)
+        {
+            try
+            {
+                var result = await _quotationService.ApproveAsync(id);
+                if (result)
+                {
+                    return Json(new { success = true, message = "Báo giá đã được duyệt thành công!" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Không thể duyệt báo giá này." });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<JsonResult> Cancel(int id)
+        {
+            try
+            {
+                var result = await _quotationService.CancelAsync(id);
+                if (result)
+                {
+                    return Json(new { success = true, message = "Báo giá đã được hủy thành công!" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Không thể hủy báo giá này." });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var quotation = await _quotationService.GetByIdAsync(id);
+            if (quotation == null)
+            {
+                TempData["Error"] = "Quotation not found.";
+                return RedirectToAction("Index");
+            }
+
+            // Get vehicle variants for dropdown
+            var variantsResponse = await _vehicleVariantService.GetAllAsync();
+            ViewBag.VehicleVariants = variantsResponse.Success ? variantsResponse.Data : new List<VehicleVariantViewModel>();
+
+            // Get customer info
+            var customerResponse = await _customerService.GetByIdAsync(quotation.CustomerId);
+            ViewBag.Customer = customerResponse?.Data;
+
+            ViewBag.DealerId = GetDealerIdFromSession();
+
+            return View("Create", quotation); // Reuse Create view for editing
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Duplicate(int id)
+        {
+            var quotation = await _quotationService.GetByIdAsync(id);
+            if (quotation == null)
+            {
+                TempData["Error"] = "Quotation not found.";
+                return RedirectToAction("Index");
+            }
+
+            // Create a new quotation based on the existing one
+            var newQuotation = new QuotationViewModel
+            {
+                CustomerId = quotation.CustomerId,
+                VariantId = quotation.VariantId,
+                DealerId = quotation.DealerId,
+                Price = quotation.Price,
+                Status = "Pending",
+                CreatedAt = DateTime.Now
+            };
+
+            // Get vehicle variants for dropdown
+            var variantsResponse = await _vehicleVariantService.GetAllAsync();
+            ViewBag.VehicleVariants = variantsResponse.Success ? variantsResponse.Data : new List<VehicleVariantViewModel>();
+
+            // Get customer info
+            var customerResponse = await _customerService.GetByIdAsync(quotation.CustomerId);
+            ViewBag.Customer = customerResponse?.Data;
+
+            ViewBag.DealerId = GetDealerIdFromSession();
+            ViewBag.IsDuplicate = true;
+
+            return View("Create", newQuotation);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Print(int id)
+        {
+            var quotation = await _quotationService.GetDetailsByIdAsync(id);
+            if (quotation == null)
+            {
+                TempData["Error"] = "Quotation not found.";
+                return RedirectToAction("Index");
+            }
+
+            ViewBag.IsPrintView = true;
+            return View("Details", quotation);
+        }
+
+        [HttpGet]
+        public IActionResult CreateTestData()
+        {
+            // This is just for testing - in production, remove this method
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult CreateTestData(string action)
+        {
+            try
+            {
+                if (action == "create")
+                {
+                    // Create a test quotation with sample data
+                    var testQuotation = new QuotationDetailViewModel
+                    {
+                        QuotationId = 7213625, // Use a proper 7-digit ID to match the format
+                        CustomerName = "Nguyễn Văn A",
+                        CustomerEmail = "nguyenvana@example.com",
+                        CustomerPhone = "0123456789",
+                        VehicleBrand = "Toyota",
+                        VehicleModel = "Camry",
+                        VehicleVersion = "2.5Q",
+                        VehicleColor = "Trắng Ngọc Trai",
+                        VehicleYear = 2024,
+                        VehicleBasePrice = 1200000000,
+                        DiscountAmount = 50000000,
+                        AdditionalFees = 30000000,
+                        TaxRate = 0.1m,
+                        DiscountDescription = "Khuyến mãi tháng 10",
+                        FeesDescription = "Phí đăng ký + Bảo hiểm",
+                        CreatedAt = DateTime.Now,
+                        Status = "Pending",
+                        DealerName = "Lê Thị B"
+                    };
+
+                    return View("Details", testQuotation);
+                }
+                else
+                {
+                    return RedirectToAction("Index");
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error creating test data: {ex.Message}";
+                return View();
+            }
+        }
     }
 }

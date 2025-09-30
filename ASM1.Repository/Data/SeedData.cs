@@ -115,26 +115,26 @@ public static class SeedData
             new VehicleModel { VehicleModelId = 8, ManufacturerId = 5, Name = "ET7", Category = "Sedan" }
         );
 
-        // Seed Vehicle Variants
+        // Seed Vehicle Variants - Prices in VND (Vietnamese market)
         modelBuilder.Entity<VehicleVariant>().HasData(
             // Tesla Model S
-            new VehicleVariant { VariantId = 1, VehicleModelId = 1, Version = "Long Range", Color = "White", ProductYear = 2024, Price = 90000 },
-            new VehicleVariant { VariantId = 2, VehicleModelId = 1, Version = "Plaid", Color = "Black", ProductYear = 2025, Price = 120000 },
+            new VehicleVariant { VariantId = 1, VehicleModelId = 1, Version = "Long Range", Color = "White", ProductYear = 2024, Price = 3500000000 }, // ~3.5 tỷ VND
+            new VehicleVariant { VariantId = 2, VehicleModelId = 1, Version = "Plaid", Color = "Black", ProductYear = 2025, Price = 4800000000 }, // ~4.8 tỷ VND
             // Tesla Model 3
-            new VehicleVariant { VariantId = 3, VehicleModelId = 2, Version = "Standard", Color = "Blue", ProductYear = 2024, Price = 45000 },
-            new VehicleVariant { VariantId = 4, VehicleModelId = 2, Version = "Performance", Color = "Red", ProductYear = 2025, Price = 60000 },
+            new VehicleVariant { VariantId = 3, VehicleModelId = 2, Version = "Standard", Color = "Blue", ProductYear = 2024, Price = 1890000000 }, // ~1.89 tỷ VND
+            new VehicleVariant { VariantId = 4, VehicleModelId = 2, Version = "Performance", Color = "Red", ProductYear = 2025, Price = 2350000000 }, // ~2.35 tỷ VND
             // VinFast VF e34
-            new VehicleVariant { VariantId = 5, VehicleModelId = 3, Version = "Base", Color = "White", ProductYear = 2024, Price = 35000 },
+            new VehicleVariant { VariantId = 5, VehicleModelId = 3, Version = "Base", Color = "White", ProductYear = 2024, Price = 590000000 }, // ~590 triệu VND
             // VinFast VF 8
-            new VehicleVariant { VariantId = 6, VehicleModelId = 4, Version = "Plus", Color = "Gray", ProductYear = 2025, Price = 55000 },
+            new VehicleVariant { VariantId = 6, VehicleModelId = 4, Version = "Plus", Color = "Gray", ProductYear = 2025, Price = 1450000000 }, // ~1.45 tỷ VND
             // BYD Han EV
-            new VehicleVariant { VariantId = 7, VehicleModelId = 5, Version = "Premium", Color = "Black", ProductYear = 2024, Price = 70000 },
+            new VehicleVariant { VariantId = 7, VehicleModelId = 5, Version = "Premium", Color = "Black", ProductYear = 2024, Price = 1980000000 }, // ~1.98 tỷ VND
             // BYD Atto 3
-            new VehicleVariant { VariantId = 8, VehicleModelId = 6, Version = "Comfort", Color = "Blue", ProductYear = 2025, Price = 40000 },
+            new VehicleVariant { VariantId = 8, VehicleModelId = 6, Version = "Comfort", Color = "Blue", ProductYear = 2025, Price = 768000000 }, // ~768 triệu VND
             // NIO ES6
-            new VehicleVariant { VariantId = 9, VehicleModelId = 7, Version = "Standard", Color = "White", ProductYear = 2024, Price = 65000 },
+            new VehicleVariant { VariantId = 9, VehicleModelId = 7, Version = "Standard", Color = "White", ProductYear = 2024, Price = 2100000000 }, // ~2.1 tỷ VND
             // NIO ET7
-            new VehicleVariant { VariantId = 10, VehicleModelId = 8, Version = "Performance", Color = "Silver", ProductYear = 2025, Price = 90000 }
+            new VehicleVariant { VariantId = 10, VehicleModelId = 8, Version = "Performance", Color = "Silver", ProductYear = 2025, Price = 2800000000 } // ~2.8 tỷ VND
         );
     }
     }

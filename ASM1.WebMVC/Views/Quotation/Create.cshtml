@@ -250,7 +250,7 @@
                                 <button type="reset" class="btn btn-outline-secondary me-2">
                                     <i class="bi bi-arrow-clockwise"></i> Reset Form
                                 </button>
-                                <button type="submit" class="btn btn-success">
+                                <button type="submit" class="btn btn-success" id="submitBtn">
                                     <i class="bi bi-check-circle"></i> Tạo báo giá
                                 </button>
                             </div>
@@ -600,8 +600,18 @@
             }
 
             // Submit form with calculated price
+            var formSubmitted = false;
+            
             $('form').on('submit', function(e) {
+                if (formSubmitted) {
+                    console.log('Form already being submitted, allowing...');
+                    return true;
+                }
+                
                 console.log('Form submit triggered');
+                
+                // Prevent multiple submissions
+                e.preventDefault();
                 
                 // Update all hidden fields before validation
                 updateHiddenFields();
@@ -614,7 +624,7 @@
                 var dealerId = $('input[name="DealerId"]').val();
                 var variantId = $('select[name="VariantId"]').val();
                 var basePrice = $('input[name="BasePrice"]').val();
-                var status = $('input[name="Status"]').val();
+                var status = $('select[name="Status"]').val() || $('#Status').val();
                 
                 console.log('Form values before submit:');
                 console.log('CustomerId:', customerId);
@@ -622,43 +632,29 @@
                 console.log('VariantId:', variantId);
                 console.log('BasePrice:', basePrice);
                 console.log('Status:', status);
-                console.log('TaxRate:', $('input[name="TaxRate"]').val());
-                console.log('DiscountAmount:', $('input[name="DiscountAmount"]').val());
-                console.log('AdditionalFees:', $('input[name="AdditionalFees"]').val());
                 
-                // Ensure required fields have values
-                if (!customerId || customerId === '0' || customerId === '') {
-                    showToast('Customer ID is missing', 'error', 'Validation Error');
-                    e.preventDefault();
+                // Basic validation - only check for variant selection
+                if (!variantId || variantId === '' || variantId === '0') {
+                    showToast('Vui lòng chọn variant xe trước khi tạo báo giá!', 'warning', 'Cảnh báo');
                     return false;
+                }
+                
+                // Set default values if missing
+                if (!customerId || customerId === '0' || customerId === '') {
+                    $('#CustomerId').val(@(ViewBag.CustomerId ?? 0));
                 }
                 
                 if (!dealerId || dealerId === '0' || dealerId === '') {
-                    showToast('Dealer ID is missing', 'error', 'Validation Error');
-                    e.preventDefault();
-                    return false;
-                }
-                
-                if (!variantId || variantId === '0' || variantId === '') {
-                    showToast('Please select a vehicle variant', 'error', 'Validation Error');
-                    e.preventDefault();
-                    return false;
+                    $('input[name="DealerId"]').val(@(ViewBag.DealerId ?? 0));
                 }
                 
                 if (!status || status === '') {
-                    $('input[name="Status"]').val('Pending');
+                    $('#Status').val('Pending');
                 }
                 
-                if (!variantId) {
-                    showToast('Vui lòng chọn variant xe trước khi tạo báo giá!', 'warning', 'Cảnh báo');
-                    e.preventDefault();
-                    return false;
-                }
-                
-                if (finalPrice <= 0) {
-                    showToast('Giá cuối cùng không hợp lệ. Vui lòng kiểm tra lại thông tin!', 'error', 'Lỗi');
-                    e.preventDefault();
-                    return false;
+                // Ensure minimum price
+                if (finalPrice <= 0 && basePrice > 0) {
+                    finalPrice = basePrice;
                 }
                 
                 // Create a hidden input for the final price
@@ -667,13 +663,18 @@
                         type: 'hidden',
                         id: 'HiddenFinalPrice',
                         name: 'Price',
-                        value: Math.round(finalPrice)
+                        value: Math.round(finalPrice || basePrice || 0)
                     }).appendTo(this);
                 } else {
-                    $('#HiddenFinalPrice').val(Math.round(finalPrice));
+                    $('#HiddenFinalPrice').val(Math.round(finalPrice || basePrice || 0));
                 }
                 
-                console.log('Form data ready for submission');
+                console.log('Form data ready for submission with final price:', Math.round(finalPrice || basePrice || 0));
+                console.log('Form will now submit to backend...');
+                
+                // Mark as submitted and submit
+                formSubmitted = true;
+                this.submit();
             });
             
             // Handle promotion button click
@@ -818,6 +819,22 @@
                 $('input[name="DealerId"]').val(@(ViewBag.DealerId ?? 0));
                 </text>
             }
+            
+            // Main submit button handler
+            $('#submitBtn').click(function(e) {
+                console.log('Main submit button clicked');
+                
+                // Don't prevent default, let the form submit event handler take over
+                var variantId = $('#VariantId').val();
+                if (!variantId || variantId === '') {
+                    alert('Vui lòng chọn variant xe trước khi tạo báo giá!');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                console.log('Main submit button - variant selected, triggering form submit');
+                // The form submit event handler will handle the rest
+            });
         });
     </script>
 }

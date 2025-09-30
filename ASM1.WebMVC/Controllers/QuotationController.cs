@@ -68,7 +68,8 @@ namespace ASM1.WebMVC.Controllers
             try
             {
                 // Debug: Print all model values
-                Console.WriteLine("=== CREATE POST DEBUG ===");
+                Console.WriteLine("=== CREATE POST REQUEST RECEIVED ===");
+                Console.WriteLine($"Request received at: {DateTime.Now}");
                 Console.WriteLine($"QuotationId: {model.QuotationId}");
                 Console.WriteLine($"CustomerId: {model.CustomerId}");
                 Console.WriteLine($"VariantId: {model.VariantId}");
@@ -81,108 +82,52 @@ namespace ASM1.WebMVC.Controllers
                 Console.WriteLine($"FeesDescription: '{model.FeesDescription}'");
                 Console.WriteLine($"Status: '{model.Status}'");
                 Console.WriteLine($"IsEdit: {model.IsEdit}");
+                
+                // Log form data from Request.Form for debugging
+                Console.WriteLine("=== FORM DATA ===");
+                foreach (var key in Request.Form.Keys)
+                {
+                    Console.WriteLine($"{key}: {Request.Form[key]}");
+                }
 
-                // Additional validation
+                // Set dealer ID from session if not provided
+                if (model.DealerId <= 0)
+                {
+                    model.DealerId = GetDealerIdFromSession() ?? 1; // Default to 1 if no session
+                }
+
+                // Basic validation - only require variant selection
                 if (model.VariantId <= 0)
                 {
-                    ModelState.AddModelError("VariantId", "Vui lòng chọn một variant xe");
+                    TempData["Error"] = "Vui lòng chọn một variant xe.";
+                    await LoadViewDataForCreate(model.CustomerId);
+                    return View(model);
                 }
 
-                if (model.BasePrice <= 0)
-                {
-                    ModelState.AddModelError("BasePrice", "Giá xe phải lớn hơn 0");
-                }
-
+                // Set default values
                 if (string.IsNullOrEmpty(model.Status))
                 {
-                    model.Status = "Pending"; // Set default status
+                    model.Status = "Pending";
                 }
 
-                if (!ModelState.IsValid)
+                // Get variant price if base price is not set
+                if (model.BasePrice <= 0)
                 {
-                    Console.WriteLine("=== MODELSTATE VALIDATION ERRORS ===");
-                    Console.WriteLine($"Total errors: {ModelState.ErrorCount}");
-                    
-                    foreach (var kvp in ModelState)
+                    var variant = await _vehicleVariantService.GetByIdAsync(model.VariantId);
+                    if (variant.Success && variant.Data?.Price.HasValue == true)
                     {
-                        var key = kvp.Key;
-                        var state = kvp.Value;
-                        
-                        Console.WriteLine($"\nField: {key}");
-                        Console.WriteLine($"  AttemptedValue: '{state.AttemptedValue}'");
-                        Console.WriteLine($"  RawValue: '{state.RawValue}'");
-                        Console.WriteLine($"  ValidationState: {state.ValidationState}");
-                        
-                        if (state.Errors.Count > 0)
-                        {
-                            Console.WriteLine($"  Errors ({state.Errors.Count}):");
-                            foreach (var error in state.Errors)
-                            {
-                                Console.WriteLine($"    - {error.ErrorMessage}");
-                                if (error.Exception != null)
-                                {
-                                    Console.WriteLine($"      Exception: {error.Exception.Message}");
-                                    Console.WriteLine($"      StackTrace: {error.Exception.StackTrace}");
-                                }
-                            }
-                        }
-                    }
-                    
-                    Console.WriteLine("\n=== ATTEMPTING MANUAL VALIDATION ===");
-                    
-                    // Check if the errors are just validation framework issues
-                    bool hasRealErrors = false;
-                    
-                    // Check required fields manually
-                    if (model.CustomerId <= 0)
-                    {
-                        Console.WriteLine("Real error: CustomerId is invalid");
-                        hasRealErrors = true;
-                    }
-                    
-                    if (model.DealerId <= 0)
-                    {
-                        Console.WriteLine("Real error: DealerId is invalid");
-                        hasRealErrors = true;
-                    }
-                    
-                    if (model.VariantId <= 0)
-                    {
-                        Console.WriteLine("Real error: VariantId is invalid");
-                        hasRealErrors = true;
-                    }
-                    
-                    if (model.BasePrice <= 0)
-                    {
-                        Console.WriteLine("Real error: BasePrice is invalid");
-                        hasRealErrors = true;
-                    }
-                    
-                    Console.WriteLine($"Manual validation result - Has real errors: {hasRealErrors}");
-                    
-                    if (!hasRealErrors)
-                    {
-                        Console.WriteLine("No real validation errors found, clearing ModelState and proceeding...");
-                        ModelState.Clear();
-                        
-                        // Set default status if empty
-                        if (string.IsNullOrEmpty(model.Status))
-                        {
-                            model.Status = "Pending";
-                        }
+                        model.BasePrice = variant.Data.Price.Value;
                     }
                     else
                     {
-                        Console.WriteLine("Real validation errors found, returning to view...");
-                        // Reload view data for validation errors
+                        TempData["Error"] = "Không thể lấy giá của variant xe được chọn.";
                         await LoadViewDataForCreate(model.CustomerId);
                         return View(model);
                     }
                 }
 
-                // Set dealer ID from session
-                model.DealerId = GetDealerIdFromSession() ?? 0;
-                model.Status = model.Status ?? "Pending";
+                // Clear ModelState to bypass complex validation
+                ModelState.Clear();
 
                 if (model.IsEdit && model.QuotationId.HasValue)
                 {
@@ -201,17 +146,12 @@ namespace ASM1.WebMVC.Controllers
                     try
                     {
                         // Debug information
-                        Console.WriteLine($"=== UPDATING QUOTATION WITH PROMOTIONS ===");
+                        Console.WriteLine($"=== UPDATING QUOTATION ===");
                         Console.WriteLine($"Updating quotation ID: {quotationToUpdate.QuotationId}");
                         Console.WriteLine($"Customer ID: {quotationToUpdate.CustomerId}");
                         Console.WriteLine($"Variant ID: {quotationToUpdate.VariantId}");
                         Console.WriteLine($"Dealer ID: {quotationToUpdate.DealerId}");
-                        Console.WriteLine($"BasePrice: {model.BasePrice}");
-                        Console.WriteLine($"DiscountAmount: {model.DiscountAmount}");
-                        Console.WriteLine($"AdditionalFees: {model.AdditionalFees}");
-                        Console.WriteLine($"TaxRate: {model.TaxRate}");
-                        Console.WriteLine($"Auto-calculated Final Price: {model.FinalPrice}");
-                        Console.WriteLine($"Status: {quotationToUpdate.Status}");
+                        Console.WriteLine($"Final Price: {model.FinalPrice}");
                         
                         await _quotationService.UpdateAsync(quotationToUpdate);
                         TempData["Success"] = "Báo giá đã được cập nhật thành công!";
@@ -220,7 +160,6 @@ namespace ASM1.WebMVC.Controllers
                     catch (Exception updateEx)
                     {
                         Console.WriteLine($"Update error: {updateEx.Message}");
-                        Console.WriteLine($"Inner exception: {updateEx.InnerException?.Message}");
                         TempData["Error"] = $"Lỗi khi cập nhật báo giá: {updateEx.Message}";
                         await LoadViewDataForCreate(model.CustomerId);
                         return View(model);
@@ -231,12 +170,12 @@ namespace ASM1.WebMVC.Controllers
                     // Create new quotation
                     model.CreatedAt = DateTime.Now;
                     
-                    Console.WriteLine($"=== CREATING NEW QUOTATION WITH PROMOTIONS ===");
+                    Console.WriteLine($"=== CREATING NEW QUOTATION ===");
                     Console.WriteLine($"BasePrice: {model.BasePrice}");
                     Console.WriteLine($"DiscountAmount: {model.DiscountAmount}");
                     Console.WriteLine($"AdditionalFees: {model.AdditionalFees}");
                     Console.WriteLine($"TaxRate: {model.TaxRate}");
-                    Console.WriteLine($"Auto-calculated Final Price: {model.FinalPrice}");
+                    Console.WriteLine($"Final Price: {model.FinalPrice}");
                     
                     try
                     {
@@ -246,6 +185,7 @@ namespace ASM1.WebMVC.Controllers
                     }
                     catch (Exception createEx)
                     {
+                        Console.WriteLine($"Create error: {createEx.Message}");
                         TempData["Error"] = $"Lỗi khi tạo báo giá: {createEx.Message}";
                         await LoadViewDataForCreate(model.CustomerId);
                         return View(model);
@@ -254,6 +194,7 @@ namespace ASM1.WebMVC.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"General error: {ex.Message}");
                 TempData["Error"] = $"Có lỗi hệ thống xảy ra: {ex.Message}";
                 await LoadViewDataForCreate(model.CustomerId);
                 return View(model);

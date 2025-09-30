@@ -13,18 +13,52 @@ namespace ASM1.WebMVC.Controllers
             _customerService = customerService;
         }
 
+        [HttpGet("schedule")]
+        public IActionResult ScheduleTestDrive()
+        {
+            return View();
+        }
+
         [HttpPost("schedule")]
+        [ValidateAntiForgeryToken]
         public IActionResult ScheduleTestDrive([FromBody] TestDrive testDrive)
         {
-            _customerService.ScheduleTestDrive(testDrive);
-            return Ok(testDrive);
+            if (ModelState.IsValid) 
+            {
+                _customerService.ScheduleTestDrive(testDrive);
+                return RedirectToAction("ScheduleSuccess");
+            }
+
+            return View(testDrive);
+        }
+
+        [HttpGet("schedule-success")]
+        public IActionResult ScheduleSuccess()
+        {
+            return View();
+        }
+
+        [HttpGet("feedback")]
+        public IActionResult SendFeedback()
+        {
+            return View(); 
         }
 
         [HttpPost("feedback")]
         public IActionResult SendFeedback([FromBody] Feedback feedback) 
         {
-            _customerService.SendFeedback(feedback);
-            return Ok(feedback);
+            if (ModelState.IsValid)
+            {
+                _customerService.SendFeedback(feedback);
+                return RedirectToAction("FeedbackSuccess");
+            }
+            return View(feedback);
+        }
+
+        [HttpGet("feedback-success")]
+        public IActionResult FeedbackSuccess()
+        {
+            return View();
         }
     }
 }

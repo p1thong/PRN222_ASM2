@@ -12,32 +12,15 @@ namespace ASM1.WebMVC.Controllers
             _managerService = managerService;
         }
 
-        [HttpGet("total-customer")]
-        public IActionResult GetTotalCustomer()
+        [HttpGet("dashboard")]
+        public IActionResult Dashboard()
         {
-            var total = _managerService.GetTotalCustomers();
-            return Ok(total);
+            ViewBag.TotalCustomers = _managerService.GetTotalCustomers();
+            ViewBag.TotalFeedbacks = _managerService.GetTotalFeedbacks();
+            ViewBag.TotalTestDrives = _managerService.GetTotalTestDrives();
+            ViewBag.Customers = _managerService.GetAllCustomers();
+            return View();
         }
-
-        [HttpGet("total-feedbacks")]
-        public IActionResult GetTotalFeedbacks()
-        {
-            var total = _managerService.GetTotalFeedbacks();
-            return Ok(total);
-        }
-
-        [HttpGet("total-testdrives")]
-        public IActionResult GetTotalTestDrives()
-        {
-            var total = _managerService.GetTotalTestDrives();
-            return Ok(total);
-        }
-
-        [HttpGet("customers")]
-        public IActionResult GetAllCustomers()
-        {
-            var customers = _managerService.GetAllCustomers();
-            return Ok(customers);
-        }
+        
     }
 }

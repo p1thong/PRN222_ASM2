@@ -16,20 +16,22 @@ namespace ASM1.WebMVC.Controllers
         [HttpGet("testdrives")]
         public IActionResult GetAllTestDrives()
         {
-            return Ok(_dealerService.GetAllTestDrives());
+            var testDrives = _dealerService.GetAllTestDrives();
+            return View(testDrives);
         }
 
         [HttpPut("testdrives/{id}/status")]
         public IActionResult UpdateTestDriveStatus(int testDriveId, [FromBody] string status) 
         {
             _dealerService.UpdateTestDriveStatus(testDriveId, status);
-            return NoContent();
+            return RedirectToAction("TestDrives");
         }
 
         [HttpGet("customers")]
         public IActionResult GetAllCustomers()
         {
-            return Ok(_dealerService.GetAllCustomers());
+            var customers = _dealerService.GetAllCustomers();
+            return View(customers);
         }
 
         [HttpPost("customers")]
@@ -42,7 +44,8 @@ namespace ASM1.WebMVC.Controllers
         [HttpGet("feedbacks")]
         public IActionResult GetAllFeedback()
         {
-            return Ok(_dealerService.GetAllFeedbacks());
+            var feedbacks = _dealerService.GetAllFeedbacks();
+            return View(feedbacks);
         }
     }
 }

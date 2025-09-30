@@ -18,6 +18,7 @@ namespace ASM1.Service.Models
 
     public class QuotationCreateViewModel
     {
+        public int? QuotationId { get; set; } // For edit mode
         public int CustomerId { get; set; }
         public int VariantId { get; set; }
         public int DealerId { get; set; }
@@ -39,6 +40,9 @@ namespace ASM1.Service.Models
                 return BasePrice - DiscountAmount + AdditionalFees + taxAmount;
             } 
         }
+        
+        // Helper property to check if this is edit mode
+        public bool IsEdit => QuotationId.HasValue && QuotationId.Value > 0;
     }
 
     public class QuotationDetailViewModel
@@ -68,7 +72,7 @@ namespace ASM1.Service.Models
         public List<PriceBreakdownItem> PriceBreakdown => new List<PriceBreakdownItem>
         {
             new PriceBreakdownItem { Description = "Giá xe gốc", Amount = VehicleBasePrice, Type = "base" },
-            new PriceBreakdownItem { Description = $"Giảm giá {(!string.IsNullOrEmpty(DiscountDescription) ? $"({DiscountDescription})" : "")}", Amount = -DiscountAmount, Type = "discount" },
+            new PriceBreakdownItem { Description = $"Giảm giá {(!string.IsNullOrEmpty(DiscountDescription) ? $"({DiscountDescription})" : "")}", Amount = DiscountAmount, Type = "discount" },
             new PriceBreakdownItem { Description = $"Phí bổ sung {(!string.IsNullOrEmpty(FeesDescription) ? $"({FeesDescription})" : "")}", Amount = AdditionalFees, Type = "fee" },
             new PriceBreakdownItem { Description = $"Thuế ({TaxRate:P0})", Amount = TaxAmount, Type = "tax" }
         };

@@ -61,7 +61,7 @@ namespace ASM1.Repository.Repositories
         {
             await Task.Run(() =>
             {
-                _dbSet.Update(entity);
+                _context.Entry(entity).State = EntityState.Modified;
             });
         }
     }

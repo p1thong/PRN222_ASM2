@@ -306,13 +306,17 @@
                                                             @item.Description
                                                         </td>
                                                         <td class="text-end fw-bold">
-                                                            @if (item.Amount >= 0)
+                                                            @if (item.Type == "discount")
                                                             {
-                                                                <span class="text-primary">@((item.Amount * 1000).ToString("N0"))</span>
+                                                                <span class="text-success">-@(item.Amount.ToString("N0"))</span>
+                                                            }
+                                                            else if (item.Amount >= 0)
+                                                            {
+                                                                <span class="text-primary">@(item.Amount.ToString("N0"))</span>
                                                             }
                                                             else
                                                             {
-                                                                <span class="text-success">@((item.Amount * 1000).ToString("N0"))</span>
+                                                                <span class="text-danger">@(item.Amount.ToString("N0"))</span>
                                                             }
                                                         </td>
                                                     </tr>
@@ -323,7 +327,7 @@
                                                     <th class="fs-5">
                                                         <i class="bi bi-currency-dollar me-2"></i>TỔNG CỘNG
                                                     </th>
-                                                    <th class="text-end fs-4 text-warning">@((Model.FinalPrice * 1000).ToString("N0"))</th>
+                                                    <th class="text-end fs-4 text-warning">@(Model.FinalPrice.ToString("N0"))</th>
                                                 </tr>
                                             </tfoot>
                                         </table>
@@ -335,7 +339,7 @@
                                             <i class="bi bi-star-fill"></i> GIÁ CUỐI CÙNG
                                         </h6>
                                         <div class="display-5 fw-bold mb-2">
-                                            @((Model.FinalPrice * 1000).ToString("N0"))
+                                            @(Model.FinalPrice.ToString("N0"))
                                         </div>
                                         <p class="mb-0 small">VND (Đã bao gồm VAT)</p>
                                     </div>
@@ -368,77 +372,7 @@
                         </div>
                     </div>
 
-                    <!-- Terms and Conditions -->
-                    <div class="section-card">
-                        <div class="section-header">
-                            <h5 class="mb-0">
-                                <i class="bi bi-shield-check text-info"></i> ĐIỀU KHOẢN & ĐIỀU KIỆN
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <h6 class="text-primary">Điều kiện bán hàng:</h6>
-                                    <ul class="list-unstyled">
-                                        <li><i class="bi bi-check-circle text-success me-2"></i>Báo giá có hiệu lực trong 30 ngày</li>
-                                        <li><i class="bi bi-check-circle text-success me-2"></i>Giá đã bao gồm VAT 10%</li>
-                                        <li><i class="bi bi-check-circle text-success me-2"></i>Đặt cọc tối thiểu 10% giá trị xe</li>
-                                        <li><i class="bi bi-check-circle text-success me-2"></i>Thời gian giao xe: 7-14 ngày làm việc</li>
-                                    </ul>
-                                </div>
-                                <div class="col-md-6">
-                                    <h6 class="text-primary">Chính sách bảo hành:</h6>
-                                    <ul class="list-unstyled">
-                                        <li><i class="bi bi-shield-check text-info me-2"></i>Bảo hành chính hãng 3 năm hoặc 100.000km</li>
-                                        <li><i class="bi bi-shield-check text-info me-2"></i>Bảo dưỡng định kỳ miễn phí 1 năm</li>
-                                        <li><i class="bi bi-shield-check text-info me-2"></i>Hỗ trợ cứu hộ 24/7</li>
-                                        <li><i class="bi bi-shield-check text-info me-2"></i>Đổi xe trong vòng 7 ngày nếu có lỗi</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Payment Methods -->
-                    <div class="section-card">
-                        <div class="section-header">
-                            <h5 class="mb-0">
-                                <i class="bi bi-credit-card text-warning"></i> PHƯƠNG THỨC THANH TOÁN
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row text-center">
-                                <div class="col-md-3">
-                                    <div class="p-3 border rounded">
-                                        <i class="bi bi-cash display-6 text-success"></i>
-                                        <h6 class="mt-2">Tiền mặt</h6>
-                                        <small class="text-muted">Thanh toán trực tiếp</small>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="p-3 border rounded">
-                                        <i class="bi bi-bank display-6 text-primary"></i>
-                                        <h6 class="mt-2">Chuyển khoản</h6>
-                                        <small class="text-muted">Qua ngân hàng</small>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="p-3 border rounded">
-                                        <i class="bi bi-credit-card display-6 text-info"></i>
-                                        <h6 class="mt-2">Thẻ tín dụng</h6>
-                                        <small class="text-muted">Visa, Mastercard</small>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="p-3 border rounded">
-                                        <i class="bi bi-percent display-6 text-warning"></i>
-                                        <h6 class="mt-2">Trả góp</h6>
-                                        <small class="text-muted">Lãi suất ưu đãi</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- Contact Information -->
                     <div class="section-card">
@@ -505,9 +439,9 @@
                             <button class="btn btn-success me-2" onclick="approveQuotation(@Model.QuotationId)">
                                 <i class="bi bi-check-circle"></i> Duyệt báo giá
                             </button>
-                            <button class="btn btn-warning me-2" onclick="editQuotation(@Model.QuotationId)">
+                            <a asp-action="Edit" asp-route-id="@Model.QuotationId" class="btn btn-warning me-2">
                                 <i class="bi bi-pencil"></i> Chỉnh sửa
-                            </button>
+                            </a>
                             <button class="btn btn-outline-danger" onclick="cancelQuotation(@Model.QuotationId)">
                                 <i class="bi bi-x-circle"></i> Hủy báo giá
                             </button>
@@ -551,10 +485,6 @@
                 alert('Có lỗi xảy ra khi duyệt báo giá');
             });
         }
-    }
-
-    function editQuotation(id) {
-        window.location.href = `/Quotation/Edit/${id}`;
     }
 
     function cancelQuotation(id) {

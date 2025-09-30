@@ -61,6 +61,38 @@ namespace ASM1.Service.Services
             var estimatedFees = basePrice * 0.02m; // Assume 2% additional fees
             var estimatedTaxRate = 0.1m; // 10% tax
             var estimatedTax = (basePrice - estimatedDiscount + estimatedFees) * estimatedTaxRate;
+            
+            // Try to determine actual discount by checking promotion service
+            var discountDescription = "";
+            var feesDescription = "";
+            
+            try
+            {
+                var promotionRequest = new PromotionCalculationRequest
+                {
+                    VariantId = quotation.VariantId,
+                    CustomerId = quotation.CustomerId,
+                    BasePrice = basePrice,
+                    QuotationDate = quotation.CreatedAt ?? DateTime.Now
+                };
+                
+                var promotionResult = await _promotionRuleService.CalculateApplicablePromotionsAsync(promotionRequest);
+                if (promotionResult.TotalDiscount > 0)
+                {
+                    estimatedDiscount = promotionResult.TotalDiscount;
+                    discountDescription = promotionResult.DiscountDescription;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error calculating promotion: {ex.Message}");
+            }
+            
+            // Set fees description only if there are actual fees
+            if (estimatedFees > 0)
+            {
+                feesDescription = "Phí đăng ký, bảo hiểm";
+            }
 
             var quotationDetail = new QuotationDetailViewModel
             {
@@ -77,8 +109,8 @@ namespace ASM1.Service.Services
                 DiscountAmount = estimatedDiscount,
                 AdditionalFees = estimatedFees,
                 TaxRate = estimatedTaxRate,
-                DiscountDescription = "Khuyến mãi tháng",
-                FeesDescription = "Phí đăng ký, bảo hiểm",
+                DiscountDescription = discountDescription,
+                FeesDescription = feesDescription,
                 CreatedAt = quotation.CreatedAt,
                 Status = quotation.Status ?? "Unknown",
                 DealerName = quotation.Dealer?.FullName ?? "Unknown Dealer"
@@ -175,9 +207,54 @@ namespace ASM1.Service.Services
 
         public async Task UpdateAsync(QuotationViewModel quotationVm)
         {
-            var quotation = _mapper.Map<Quotation>(quotationVm);
-            await _unitOfWork.Quotations.UpdateAsync(quotation);
-            await _unitOfWork.SaveChangesAsync();
+            try
+            {
+                var existingQuotation = await _unitOfWork.Quotations.GetByIdAsync(quotationVm.QuotationId);
+                if (existingQuotation == null)
+                {
+                    throw new InvalidOperationException($"Quotation with ID {quotationVm.QuotationId} not found.");
+                }
+
+                Console.WriteLine($"Found existing quotation: {existingQuotation.QuotationId}");
+
+                // Validate foreign keys
+                var customer = await _unitOfWork.Customers.GetByIdAsync(quotationVm.CustomerId);
+                if (customer == null)
+                {
+                    throw new InvalidOperationException($"Customer with ID {quotationVm.CustomerId} not found.");
+                }
+
+                var variant = await _unitOfWork.VehicleVariants.GetByIdAsync(quotationVm.VariantId);
+                if (variant == null)
+                {
+                    throw new InvalidOperationException($"Vehicle variant with ID {quotationVm.VariantId} not found.");
+                }
+
+                Console.WriteLine($"All foreign keys validated successfully");
+
+                // Update only the properties that can be changed
+                existingQuotation.CustomerId = quotationVm.CustomerId;
+                existingQuotation.VariantId = quotationVm.VariantId;
+                existingQuotation.DealerId = quotationVm.DealerId;
+                existingQuotation.Price = quotationVm.Price;
+                existingQuotation.Status = quotationVm.Status;
+                // CreatedAt should not be updated, keep the original value
+
+                Console.WriteLine($"About to call UpdateAsync on repository...");
+                await _unitOfWork.Quotations.UpdateAsync(existingQuotation);
+                
+                Console.WriteLine($"About to save changes...");
+                await _unitOfWork.SaveChangesAsync();
+                
+                Console.WriteLine($"Successfully updated quotation {quotationVm.QuotationId}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in UpdateAsync: {ex.Message}");
+                Console.WriteLine($"Inner exception: {ex.InnerException?.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                throw;
+            }
         }
 
         public async Task DeleteAsync(int id)

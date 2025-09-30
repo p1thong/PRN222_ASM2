@@ -1,6 +1,6 @@
 @model ASM1.Service.Models.QuotationCreateViewModel
 @{
-    ViewData["Title"] = "Create Quotation";
+    ViewData["Title"] = Model?.IsEdit == true ? "Chỉnh sửa báo giá" : "Tạo báo giá mới";
     var customer = ViewBag.Customer as ASM1.Service.Models.CustomerViewModel;
 }
 
@@ -10,7 +10,7 @@
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
                     <h4 class="mb-0">
-                        <i class="bi bi-file-earmark-text"></i> Tạo báo giá mới
+                        <i class="bi bi-file-earmark-text"></i> @(Model?.IsEdit == true ? $"Chỉnh sửa báo giá #{Model.QuotationId}" : "Tạo báo giá mới")
                     </h4>
                 </div>
                 <div class="card-body">
@@ -30,15 +30,13 @@
                         </div>
                     }
 
-                    <!-- Loading Overlay -->
-                    <div id="loadingOverlay" class="d-none">
-                        <div class="loading-content">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                            <p class="mt-3 mb-0">Đang tạo báo giá...</p>
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-warning">
+                            <h6>Vui lòng kiểm tra lại thông tin:</h6>
+                            <div asp-validation-summary="All" class="text-danger"></div>
                         </div>
-                    </div>
+                    }
 
                     <!-- Notification Toast -->
                     <div class="toast-container position-fixed top-0 end-0 p-3">
@@ -81,14 +79,17 @@
                     <!-- Quotation Form -->
                     <form asp-action="Create" method="post">
                         @Html.AntiForgeryToken()
-                        <input type="hidden" asp-for="CustomerId" value="@ViewBag.CustomerId" />
-                        <input type="hidden" asp-for="DealerId" value="@ViewBag.DealerId" />
+                        <input type="hidden" asp-for="QuotationId" />
+                        <input type="hidden" asp-for="CustomerId" id="CustomerId" />
+                        <input type="hidden" asp-for="DealerId" />
                         <input type="hidden" asp-for="BasePrice" id="HiddenBasePrice" />
                         <input type="hidden" asp-for="DiscountAmount" />
                         <input type="hidden" asp-for="AdditionalFees" />
                         <input type="hidden" asp-for="TaxRate" />
                         <input type="hidden" asp-for="DiscountDescription" />
                         <input type="hidden" asp-for="FeesDescription" />
+                        <input type="hidden" asp-for="Status" />
+                        <input type="hidden" asp-for="CreatedAt" />
 
                         <div class="row">
                             <div class="col-md-12 mb-3">
@@ -105,7 +106,7 @@
                                                 @variant.FullName - @(variant.Color ?? "N/A") - @(variant.ProductYear?.ToString() ?? "N/A") 
                                                 @if (variant.Price.HasValue)
                                                 {
-                                                    <text>(₫@((variant.Price.Value * 1000).ToString("N0")))</text>
+                                                    <text>(₫@(variant.Price.Value.ToString("N0")))</text>
                                                 }
                                             </option>
                                         }
@@ -117,7 +118,7 @@
                         </div>
 
                         <!-- Pricing Calculator Section -->
-                        <div class="card mb-3" id="pricingSection" style="display: none;">
+                        <div class="card mb-3" id="pricingSection" style="display: @(Model?.IsEdit == true ? "block" : "none");">
                             <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0">
                                     <i class="bi bi-calculator"></i> Tính toán giá chi tiết
@@ -202,11 +203,11 @@
                                                     <td class="text-end" id="displayBasePrice">₫0</td>
                                                 </tr>
                                                 <tr class="text-success">
-                                                    <td>Giảm giá:</td>
+                                                    <td id="discountLabel">Giảm giá:</td>
                                                     <td class="text-end" id="displayDiscount">-₫0</td>
                                                 </tr>
                                                 <tr>
-                                                    <td>Phí bổ sung:</td>
+                                                    <td id="feesLabel">Phí bổ sung:</td>
                                                     <td class="text-end" id="displayFees">+₫0</td>
                                                 </tr>
                                                 <tr>
@@ -243,8 +244,11 @@
                                 <i class="bi bi-arrow-left"></i> Quay lại danh sách khách hàng
                             </a>
                             <div>
+                                <button type="button" class="btn btn-outline-warning me-2" onclick="resetPricingFields()">
+                                    <i class="bi bi-arrow-clockwise"></i> Reset Pricing
+                                </button>
                                 <button type="reset" class="btn btn-outline-secondary me-2">
-                                    <i class="bi bi-arrow-clockwise"></i> Reset
+                                    <i class="bi bi-arrow-clockwise"></i> Reset Form
                                 </button>
                                 <button type="submit" class="btn btn-success">
                                     <i class="bi bi-check-circle"></i> Tạo báo giá
@@ -262,19 +266,6 @@
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     
     <style>
-        #loadingOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
         .loading-content {
             background: white;
             padding: 2rem;
@@ -291,6 +282,21 @@
     
     <script>
         $(document).ready(function() {
+            // Check for server-side error messages and display them
+            @if (TempData["Error"] != null)
+            {
+                <text>
+                showToast('@TempData["Error"]', 'error', 'Lỗi');
+                </text>
+            }
+            
+            @if (TempData["Success"] != null)
+            {
+                <text>
+                showToast('@TempData["Success"]', 'success', 'Thành công');
+                </text>
+            }
+            
             // Toast notification functions
             function showToast(message, type = 'info', title = 'Thông báo') {
                 const toast = $('#notificationToast');
@@ -329,15 +335,34 @@
                 bsToast.show();
             }
             
-            function showLoading() {
-                $('#loadingOverlay').removeClass('d-none');
-            }
-            
-            function hideLoading() {
-                $('#loadingOverlay').addClass('d-none');
-            }
             function formatCurrency(amount) {
                 return '₫' + Math.round(amount).toLocaleString('vi-VN');
+            }
+
+            function resetPricingFields() {
+                console.log('=== RESETTING ALL PRICING FIELDS ===');
+                $('#BasePriceDisplay').val(0);
+                $('#DiscountAmountDisplay').val(0);
+                $('#AdditionalFeesDisplay').val(0);
+                $('#TaxRateDisplay').val(0.1);
+                $('#DiscountDescriptionDisplay').val('');
+                $('#FeesDescriptionDisplay').val('');
+                $('#HiddenBasePrice').val(0);
+                $('input[name="DiscountAmount"]').val(0);
+                $('input[name="AdditionalFees"]').val(0);
+                $('input[name="TaxRate"]').val(0.1);
+                updatePricingDisplay();
+                console.log('Fields reset complete');
+            }
+
+            function updateHiddenFields() {
+                // Update hidden form fields with current display values
+                $('#HiddenBasePrice').val(parseFloat($('#BasePriceDisplay').val()) || 0);
+                $('input[name="DiscountAmount"]').val(parseFloat($('#DiscountAmountDisplay').val()) || 0);
+                $('input[name="AdditionalFees"]').val(parseFloat($('#AdditionalFeesDisplay').val()) || 0);
+                $('input[name="TaxRate"]').val(parseFloat($('#TaxRateDisplay').val()) || 0.1);
+                $('input[name="DiscountDescription"]').val($('#DiscountDescriptionDisplay').val() || '');
+                $('input[name="FeesDescription"]').val($('#FeesDescriptionDisplay').val() || '');
             }
 
             function calculateFinalPrice() {
@@ -345,24 +370,76 @@
                 var discountAmount = parseFloat($('#DiscountAmountDisplay').val()) || 0;
                 var additionalFees = parseFloat($('#AdditionalFeesDisplay').val()) || 0;
                 var taxRate = parseFloat($('#TaxRateDisplay').val()) || 0;
+                var discountDescription = $('#DiscountDescriptionDisplay').val() || '';
 
-                // Sync hidden fields
+                console.log('=== CALCULATE FINAL PRICE DEBUG ===');
+                console.log('Raw field values:');
+                console.log('  BasePriceDisplay.val():', $('#BasePriceDisplay').val());
+                console.log('  DiscountAmountDisplay.val():', $('#DiscountAmountDisplay').val());
+                console.log('  AdditionalFeesDisplay.val():', $('#AdditionalFeesDisplay').val());
+                console.log('  TaxRateDisplay.val():', $('#TaxRateDisplay').val());
+                
+                console.log('Parsed values:');
+                console.log('  basePrice:', basePrice);
+                console.log('  discountAmount:', discountAmount);
+                console.log('  additionalFees:', additionalFees);
+                console.log('  taxRate:', taxRate);
+                console.log('  discountDescription:', discountDescription);
+
+                // Check for unreasonably large values
+                if (Math.abs(discountAmount) > 1000000000) {
+                    console.error('ALERT: Discount amount is unreasonably large:', discountAmount);
+                    console.log('Setting discount to 0 to prevent calculation errors');
+                    discountAmount = 0;
+                    $('#DiscountAmountDisplay').val(0);
+                }
+
+                console.log('Calculating final price with:', {
+                    basePrice: basePrice,
+                    discountAmount: discountAmount,
+                    additionalFees: additionalFees,
+                    taxRate: taxRate,
+                    discountDescription: discountDescription
+                });
+
+                // Sync ALL hidden fields with display values
                 $('#HiddenBasePrice').val(basePrice);
+                $('input[name="BasePrice"]').val(basePrice); // Ensure BasePrice is updated
                 $('input[name="DiscountAmount"]').val(discountAmount);
                 $('input[name="AdditionalFees"]').val(additionalFees);
                 $('input[name="TaxRate"]').val(taxRate);
-                $('input[name="DiscountDescription"]').val($('#DiscountDescriptionDisplay').val());
+                $('input[name="DiscountDescription"]').val(discountDescription);
                 $('input[name="FeesDescription"]').val($('#FeesDescriptionDisplay').val());
 
                 var taxAmount = (basePrice - discountAmount + additionalFees) * taxRate;
                 var finalPrice = basePrice - discountAmount + additionalFees + taxAmount;
 
-                // Update display
+                console.log('Final price calculation result:', {
+                    taxAmount: taxAmount,
+                    finalPrice: finalPrice
+                });
+
+                // Update display with dynamic labels
                 $('#displayBasePrice').text(formatCurrency(basePrice));
                 $('#displayDiscount').text('-' + formatCurrency(discountAmount));
                 $('#displayFees').text('+' + formatCurrency(additionalFees));
                 $('#displayTax').text('+' + formatCurrency(taxAmount));
                 $('#displayFinalPrice').text(formatCurrency(finalPrice));
+                
+                // Update discount label with description
+                var discountLabel = 'Giảm giá';
+                if (discountDescription && discountDescription.trim() !== '') {
+                    discountLabel += ' (' + discountDescription + ')';
+                }
+                $('#discountLabel').text(discountLabel + ':');
+                
+                // Update fees label with description
+                var feesDescription = $('#FeesDescriptionDisplay').val() || '';
+                var feesLabel = 'Phí bổ sung';
+                if (feesDescription && feesDescription.trim() !== '') {
+                    feesLabel += ' (' + feesDescription + ')';
+                }
+                $('#feesLabel').text(feesLabel + ':');
 
                 return finalPrice;
             }
@@ -396,10 +473,9 @@
                 var price = selectedOption.data('price');
                 
                 if (price) {
-                    // Convert price to VND (multiply by 1000)
-                    var realPrice = price * 1000;
-                    $('#BasePriceDisplay').val(realPrice);
-                    $('#HiddenBasePrice').val(realPrice);
+                    // Price from data already in correct VND format
+                    $('#BasePriceDisplay').val(price);
+                    $('#HiddenBasePrice').val(price);
                     $('#pricingSection').show();
                     
                     // Reset discount fields
@@ -436,9 +512,99 @@
                 }
             });
 
+            // Function to update all hidden fields
+            function updateHiddenFields() {
+                console.log('Updating hidden fields...');
+                
+                // Get current values (null-safe)
+                var customerId = '@(Model?.CustomerId ?? 0)';
+                var dealerId = '@(Model?.DealerId ?? 0)';
+                var quotationId = '@(Model?.QuotationId?.ToString() ?? "")';
+                var isEdit = '@(Model?.IsEdit.ToString().ToLower() ?? "false")';
+                
+                // Update hidden fields if they exist
+                if ($('input[name="CustomerId"]').length > 0) {
+                    if (!$('input[name="CustomerId"]').val() || $('input[name="CustomerId"]').val() === '0') {
+                        $('input[name="CustomerId"]').val(customerId);
+                        console.log('Updated CustomerId to:', customerId);
+                    }
+                }
+                
+                if ($('input[name="DealerId"]').length > 0) {
+                    if (!$('input[name="DealerId"]').val() || $('input[name="DealerId"]').val() === '0') {
+                        $('input[name="DealerId"]').val(dealerId);
+                        console.log('Updated DealerId to:', dealerId);
+                    }
+                }
+                
+                if ($('input[name="QuotationId"]').length > 0 && quotationId) {
+                    $('input[name="QuotationId"]').val(quotationId);
+                    console.log('Updated QuotationId to:', quotationId);
+                }
+                
+                if ($('input[name="IsEdit"]').length > 0) {
+                    $('input[name="IsEdit"]').val(isEdit);
+                    console.log('Updated IsEdit to:', isEdit);
+                }
+                
+                // Sync pricing fields with display values
+                var basePriceDisplay = parseFloat($('#BasePriceDisplay').val()) || 0;
+                var discountDisplay = parseFloat($('#DiscountAmountDisplay').val()) || 0;
+                var feesDisplay = parseFloat($('#AdditionalFeesDisplay').val()) || 0;
+                var taxDisplay = parseFloat($('#TaxRateDisplay').val()) || 0;
+                
+                // Update hidden pricing fields
+                if ($('input[name="BasePrice"]').length > 0) {
+                    $('input[name="BasePrice"]').val(basePriceDisplay);
+                    console.log('Updated BasePrice to:', basePriceDisplay);
+                }
+                
+                if ($('#HiddenBasePrice').length > 0) {
+                    $('#HiddenBasePrice').val(basePriceDisplay);
+                    console.log('Updated HiddenBasePrice to:', basePriceDisplay);
+                }
+                
+                if ($('input[name="DiscountAmount"]').length > 0) {
+                    $('input[name="DiscountAmount"]').val(discountDisplay);
+                    console.log('Updated DiscountAmount to:', discountDisplay);
+                }
+                
+                if ($('input[name="AdditionalFees"]').length > 0) {
+                    $('input[name="AdditionalFees"]').val(feesDisplay);
+                    console.log('Updated AdditionalFees to:', feesDisplay);
+                }
+                
+                if ($('input[name="TaxRate"]').length > 0) {
+                    $('input[name="TaxRate"]').val(taxDisplay);
+                    console.log('Updated TaxRate to:', taxDisplay);
+                }
+                
+                // Update description fields
+                if ($('input[name="DiscountDescription"]').length > 0) {
+                    $('input[name="DiscountDescription"]').val($('#DiscountDescriptionDisplay').val() || '');
+                }
+                
+                if ($('input[name="FeesDescription"]').length > 0) {
+                    $('input[name="FeesDescription"]').val($('#FeesDescriptionDisplay').val() || '');
+                }
+                
+                // Ensure Status has a value
+                if ($('input[name="Status"]').length > 0) {
+                    if (!$('input[name="Status"]').val()) {
+                        $('input[name="Status"]').val('Pending');
+                        console.log('Set default Status to: Pending');
+                    }
+                }
+                
+                console.log('Hidden fields update completed');
+            }
+
             // Submit form with calculated price
             $('form').on('submit', function(e) {
                 console.log('Form submit triggered');
+                
+                // Update all hidden fields before validation
+                updateHiddenFields();
                 
                 var finalPrice = calculateFinalPrice();
                 console.log('Final price calculated:', finalPrice);
@@ -447,10 +613,41 @@
                 var customerId = $('input[name="CustomerId"]').val();
                 var dealerId = $('input[name="DealerId"]').val();
                 var variantId = $('select[name="VariantId"]').val();
+                var basePrice = $('input[name="BasePrice"]').val();
+                var status = $('input[name="Status"]').val();
                 
+                console.log('Form values before submit:');
                 console.log('CustomerId:', customerId);
                 console.log('DealerId:', dealerId);
                 console.log('VariantId:', variantId);
+                console.log('BasePrice:', basePrice);
+                console.log('Status:', status);
+                console.log('TaxRate:', $('input[name="TaxRate"]').val());
+                console.log('DiscountAmount:', $('input[name="DiscountAmount"]').val());
+                console.log('AdditionalFees:', $('input[name="AdditionalFees"]').val());
+                
+                // Ensure required fields have values
+                if (!customerId || customerId === '0' || customerId === '') {
+                    showToast('Customer ID is missing', 'error', 'Validation Error');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                if (!dealerId || dealerId === '0' || dealerId === '') {
+                    showToast('Dealer ID is missing', 'error', 'Validation Error');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                if (!variantId || variantId === '0' || variantId === '') {
+                    showToast('Please select a vehicle variant', 'error', 'Validation Error');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                if (!status || status === '') {
+                    $('input[name="Status"]').val('Pending');
+                }
                 
                 if (!variantId) {
                     showToast('Vui lòng chọn variant xe trước khi tạo báo giá!', 'warning', 'Cảnh báo');
@@ -463,10 +660,6 @@
                     e.preventDefault();
                     return false;
                 }
-                
-                // Show loading
-                showLoading();
-                showToast('Đang tạo báo giá, vui lòng đợi...', 'info', 'Đang xử lý');
                 
                 // Create a hidden input for the final price
                 if ($('#HiddenFinalPrice').length === 0) {
@@ -481,12 +674,150 @@
                 }
                 
                 console.log('Form data ready for submission');
-                
-                // Add a delay to show loading effect
-                setTimeout(() => {
-                    // Don't prevent default - let form submit
-                }, 100);
             });
+            
+            // Handle promotion button click
+            $('#applyPromotionsBtn').click(function() {
+                var variantId = $('#VariantId').val();
+                var customerId = $('#CustomerId').val() || @(Model?.CustomerId ?? 0);
+                var additionalFees = parseFloat($('#AdditionalFeesDisplay').val()) || 0;
+                var taxRate = parseFloat($('#TaxRateDisplay').val()) || 0.1;
+                
+                console.log('Applying promotions with:', {
+                    variantId: variantId,
+                    customerId: customerId,
+                    additionalFees: additionalFees,
+                    taxRate: taxRate
+                });
+                
+                if (!variantId || variantId === '') {
+                    showToast('Vui lòng chọn variant xe trước khi áp dụng khuyến mãi', 'error', 'Lỗi');
+                    return;
+                }
+                
+                if (!customerId || customerId === 0) {
+                    showToast('Không tìm thấy thông tin khách hàng', 'error', 'Lỗi');
+                    return;
+                }
+                
+                // Show loading
+                $(this).prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Đang tính toán...');
+                
+                $.ajax({
+                    url: '/Quotation/CalculateWithPromotions',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        variantId: parseInt(variantId),
+                        customerId: parseInt(customerId),
+                        additionalFees: additionalFees,
+                        taxRate: taxRate
+                    }),
+                    success: function(response) {
+                        if (response.success) {
+                            var data = response.data;
+                            
+                            console.log('=== PROMOTION RESPONSE DEBUG ===');
+                            console.log('Raw promotion response data:', data);
+                            console.log('vehicleBasePrice:', data.vehicleBasePrice, typeof data.vehicleBasePrice);
+                            console.log('discountAmount:', data.discountAmount, typeof data.discountAmount);
+                            console.log('additionalFees:', data.additionalFees, typeof data.additionalFees);
+                            console.log('taxRate:', data.taxRate, typeof data.taxRate);
+                            
+                            // Validate data for unreasonable values
+                            var basePrice = parseFloat(data.vehicleBasePrice) || 0;
+                            var discountAmount = parseFloat(data.discountAmount) || 0;
+                            var additionalFees = parseFloat(data.additionalFees) || 0;
+                            var taxRate = parseFloat(data.taxRate) || 0.1;
+                            
+                            console.log('Parsed values:');
+                            console.log('  basePrice:', basePrice);
+                            console.log('  discountAmount:', discountAmount);
+                            console.log('  additionalFees:', additionalFees);
+                            console.log('  taxRate:', taxRate);
+                            
+                            // Check for unreasonable values
+                            if (Math.abs(discountAmount) > 100000000) { // > 100 million
+                                console.error('ALERT: Discount amount is unreasonably large:', discountAmount);
+                                console.log('Capping discount at 50 million');
+                                discountAmount = Math.min(discountAmount, 50000000);
+                            }
+                            
+                            // Update pricing display - data is already in VND, no need to multiply by 1000
+                            $('#BasePriceDisplay').val(basePrice);
+                            $('#HiddenBasePrice').val(basePrice);
+                            $('#DiscountAmountDisplay').val(discountAmount);
+                            $('#AdditionalFeesDisplay').val(additionalFees);
+                            $('#TaxRateDisplay').val(taxRate);
+                            $('#DiscountDescriptionDisplay').val(data.discountDescription || '');
+                            $('#FeesDescriptionDisplay').val(data.feesDescription || '');
+                            
+                            console.log('Updated fields with values:', {
+                                basePrice: basePrice,
+                                discountAmount: discountAmount,
+                                additionalFees: additionalFees,
+                                taxRate: taxRate
+                            });
+                            
+                            // Update hidden form fields
+                            updateHiddenFields();
+                            calculateFinalPrice();
+                            
+                            showToast('Đã áp dụng khuyến mãi thành công!', 'success', 'Thành công');
+                        } else {
+                            showToast('Lỗi khi áp dụng khuyến mãi: ' + response.message, 'error', 'Lỗi');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        showToast('Lỗi kết nối khi áp dụng khuyến mãi', 'error', 'Lỗi');
+                        console.error('Promotion error:', error);
+                    },
+                    complete: function() {
+                        $('#applyPromotionsBtn').prop('disabled', false).html('<i class="bi bi-percent"></i> Áp dụng khuyến mãi tự động');
+                    }
+                });
+            });
+            
+            // Initialize edit mode if necessary
+            @if (Model?.IsEdit == true)
+            {
+                <text>
+                // In edit mode, set pricing values directly from model data
+                console.log('Edit mode detected, initializing form...');
+                
+                // Ensure IDs are set correctly
+                $('#CustomerId').val(@(Model.CustomerId));
+                $('input[name="DealerId"]').val(@(ViewBag.DealerId ?? 0));
+                
+                // Set pricing values directly from model (already in correct VND format)
+                $('#BasePriceDisplay').val(@(Model.BasePrice));
+                $('#HiddenBasePrice').val(@(Model.BasePrice));
+                $('#DiscountAmountDisplay').val(@(Model.DiscountAmount));
+                $('#AdditionalFeesDisplay').val(@(Model.AdditionalFees));
+                $('#TaxRateDisplay').val(@(Model.TaxRate));
+                $('#DiscountDescriptionDisplay').val('@(Model.DiscountDescription ?? "")');
+                $('#FeesDescriptionDisplay').val('@(Model.FeesDescription ?? "")');
+                
+                console.log('Edit mode pricing initialized:', {
+                    basePrice: @(Model.BasePrice),
+                    discountAmount: @(Model.DiscountAmount),
+                    additionalFees: @(Model.AdditionalFees),
+                    taxRate: @(Model.TaxRate)
+                });
+                
+                // Don't trigger variant change in edit mode, just show pricing section
+                $('#pricingSection').show();
+                calculateFinalPrice();
+                </text>
+            }
+            else 
+            {
+                <text>
+                // In create mode, set CustomerId from ViewBag
+                $('#CustomerId').val(@(ViewBag.CustomerId ?? 0));
+                $('input[name="DealerId"]').val(@(ViewBag.DealerId ?? 0));
+                </text>
+            }
         });
     </script>
 }

@@ -49,7 +49,16 @@ namespace ASM1.WebMVC.Controllers
             ViewBag.CustomerId = customerId;
             ViewBag.DealerId = GetDealerIdFromSession();
 
-            return View();
+            // Create a default model for new quotation
+            var model = new QuotationCreateViewModel
+            {
+                CustomerId = customerId,
+                DealerId = GetDealerIdFromSession() ?? 0,
+                TaxRate = 0.1m,
+                Status = "Pending"
+            };
+
+            return View(model);
         }
 
         [HttpPost]
@@ -58,111 +67,215 @@ namespace ASM1.WebMVC.Controllers
         {
             try
             {
-                // Debug: Log method entry
-                Console.WriteLine("=== QUOTATION CREATE POST CALLED ===");
-                Console.WriteLine($"Timestamp: {DateTime.Now}");
-                
-                // Debug: Log received model data
-                Console.WriteLine("=== QUOTATION CREATE DEBUG ===");
-                Console.WriteLine($"Model received: CustomerId={model.CustomerId}, VariantId={model.VariantId}, DealerId={model.DealerId}");
-                Console.WriteLine($"Pricing: BasePrice={model.BasePrice}, DiscountAmount={model.DiscountAmount}, AdditionalFees={model.AdditionalFees}");
-                Console.WriteLine($"Tax: TaxRate={model.TaxRate}, Status={model.Status}");
-                Console.WriteLine($"Descriptions: Discount='{model.DiscountDescription}', Fees='{model.FeesDescription}'");
-                
-                // Debug: Check ModelState
-                Console.WriteLine($"ModelState.IsValid: {ModelState.IsValid}");
+                // Debug: Print all model values
+                Console.WriteLine("=== CREATE POST DEBUG ===");
+                Console.WriteLine($"QuotationId: {model.QuotationId}");
+                Console.WriteLine($"CustomerId: {model.CustomerId}");
+                Console.WriteLine($"VariantId: {model.VariantId}");
+                Console.WriteLine($"DealerId: {model.DealerId}");
+                Console.WriteLine($"BasePrice: {model.BasePrice}");
+                Console.WriteLine($"DiscountAmount: {model.DiscountAmount}");
+                Console.WriteLine($"AdditionalFees: {model.AdditionalFees}");
+                Console.WriteLine($"TaxRate: {model.TaxRate}");
+                Console.WriteLine($"DiscountDescription: '{model.DiscountDescription}'");
+                Console.WriteLine($"FeesDescription: '{model.FeesDescription}'");
+                Console.WriteLine($"Status: '{model.Status}'");
+                Console.WriteLine($"IsEdit: {model.IsEdit}");
+
+                // Additional validation
+                if (model.VariantId <= 0)
+                {
+                    ModelState.AddModelError("VariantId", "Vui lòng chọn một variant xe");
+                }
+
+                if (model.BasePrice <= 0)
+                {
+                    ModelState.AddModelError("BasePrice", "Giá xe phải lớn hơn 0");
+                }
+
+                if (string.IsNullOrEmpty(model.Status))
+                {
+                    model.Status = "Pending"; // Set default status
+                }
+
                 if (!ModelState.IsValid)
                 {
-                    Console.WriteLine("Validation errors:");
-                    foreach (var error in ModelState)
+                    Console.WriteLine("=== MODELSTATE VALIDATION ERRORS ===");
+                    Console.WriteLine($"Total errors: {ModelState.ErrorCount}");
+                    
+                    foreach (var kvp in ModelState)
                     {
-                        Console.WriteLine($"  {error.Key}: {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
+                        var key = kvp.Key;
+                        var state = kvp.Value;
+                        
+                        Console.WriteLine($"\nField: {key}");
+                        Console.WriteLine($"  AttemptedValue: '{state.AttemptedValue}'");
+                        Console.WriteLine($"  RawValue: '{state.RawValue}'");
+                        Console.WriteLine($"  ValidationState: {state.ValidationState}");
+                        
+                        if (state.Errors.Count > 0)
+                        {
+                            Console.WriteLine($"  Errors ({state.Errors.Count}):");
+                            foreach (var error in state.Errors)
+                            {
+                                Console.WriteLine($"    - {error.ErrorMessage}");
+                                if (error.Exception != null)
+                                {
+                                    Console.WriteLine($"      Exception: {error.Exception.Message}");
+                                    Console.WriteLine($"      StackTrace: {error.Exception.StackTrace}");
+                                }
+                            }
+                        }
+                    }
+                    
+                    Console.WriteLine("\n=== ATTEMPTING MANUAL VALIDATION ===");
+                    
+                    // Check if the errors are just validation framework issues
+                    bool hasRealErrors = false;
+                    
+                    // Check required fields manually
+                    if (model.CustomerId <= 0)
+                    {
+                        Console.WriteLine("Real error: CustomerId is invalid");
+                        hasRealErrors = true;
+                    }
+                    
+                    if (model.DealerId <= 0)
+                    {
+                        Console.WriteLine("Real error: DealerId is invalid");
+                        hasRealErrors = true;
+                    }
+                    
+                    if (model.VariantId <= 0)
+                    {
+                        Console.WriteLine("Real error: VariantId is invalid");
+                        hasRealErrors = true;
+                    }
+                    
+                    if (model.BasePrice <= 0)
+                    {
+                        Console.WriteLine("Real error: BasePrice is invalid");
+                        hasRealErrors = true;
+                    }
+                    
+                    Console.WriteLine($"Manual validation result - Has real errors: {hasRealErrors}");
+                    
+                    if (!hasRealErrors)
+                    {
+                        Console.WriteLine("No real validation errors found, clearing ModelState and proceeding...");
+                        ModelState.Clear();
+                        
+                        // Set default status if empty
+                        if (string.IsNullOrEmpty(model.Status))
+                        {
+                            model.Status = "Pending";
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Real validation errors found, returning to view...");
+                        // Reload view data for validation errors
+                        await LoadViewDataForCreate(model.CustomerId);
+                        return View(model);
                     }
                 }
 
-                if (!ModelState.IsValid)
-                {
-                    Console.WriteLine("ModelState invalid, reloading view data...");
-                    // Reload customer data and variants if validation fails
-                    var customerResponse = await _customerService.GetByIdAsync(model.CustomerId);
-                if (customerResponse != null && customerResponse.Success)
-                {
-                    ViewBag.Customer = customerResponse.Data;
-                }
-                
-                var variantsResponse = await _vehicleVariantService.GetAllAsync();
-                ViewBag.VehicleVariants = variantsResponse.Success ? variantsResponse.Data : new List<VehicleVariantViewModel>();
-                
-                ViewBag.CustomerId = model.CustomerId;
-                ViewBag.DealerId = GetDealerIdFromSession();
-                return View(model);
-            }
-
-            try
-            {
                 // Set dealer ID from session
                 model.DealerId = GetDealerIdFromSession() ?? 0;
-                model.CreatedAt = DateTime.Now;
-                model.Status = "Pending";
+                model.Status = model.Status ?? "Pending";
 
-                Console.WriteLine($"Final model before service call: DealerId={model.DealerId}, Status={model.Status}");
-                await _quotationService.AddAsync(model);
-                Console.WriteLine("Quotation service call successful");
-                TempData["Success"] = "Quotation created successfully!";
-                return RedirectToAction("Index", "Customer");
+                if (model.IsEdit && model.QuotationId.HasValue)
+                {
+                    // Update existing quotation
+                    var quotationToUpdate = new QuotationViewModel
+                    {
+                        QuotationId = model.QuotationId.Value,
+                        CustomerId = model.CustomerId,
+                        VariantId = model.VariantId,
+                        DealerId = model.DealerId,
+                        Price = model.FinalPrice, // Use auto-calculated final price from model
+                        CreatedAt = model.CreatedAt,
+                        Status = model.Status
+                    };
+
+                    try
+                    {
+                        // Debug information
+                        Console.WriteLine($"=== UPDATING QUOTATION WITH PROMOTIONS ===");
+                        Console.WriteLine($"Updating quotation ID: {quotationToUpdate.QuotationId}");
+                        Console.WriteLine($"Customer ID: {quotationToUpdate.CustomerId}");
+                        Console.WriteLine($"Variant ID: {quotationToUpdate.VariantId}");
+                        Console.WriteLine($"Dealer ID: {quotationToUpdate.DealerId}");
+                        Console.WriteLine($"BasePrice: {model.BasePrice}");
+                        Console.WriteLine($"DiscountAmount: {model.DiscountAmount}");
+                        Console.WriteLine($"AdditionalFees: {model.AdditionalFees}");
+                        Console.WriteLine($"TaxRate: {model.TaxRate}");
+                        Console.WriteLine($"Auto-calculated Final Price: {model.FinalPrice}");
+                        Console.WriteLine($"Status: {quotationToUpdate.Status}");
+                        
+                        await _quotationService.UpdateAsync(quotationToUpdate);
+                        TempData["Success"] = "Báo giá đã được cập nhật thành công!";
+                        return RedirectToAction("Details", new { id = model.QuotationId.Value });
+                    }
+                    catch (Exception updateEx)
+                    {
+                        Console.WriteLine($"Update error: {updateEx.Message}");
+                        Console.WriteLine($"Inner exception: {updateEx.InnerException?.Message}");
+                        TempData["Error"] = $"Lỗi khi cập nhật báo giá: {updateEx.Message}";
+                        await LoadViewDataForCreate(model.CustomerId);
+                        return View(model);
+                    }
+                }
+                else
+                {
+                    // Create new quotation
+                    model.CreatedAt = DateTime.Now;
+                    
+                    Console.WriteLine($"=== CREATING NEW QUOTATION WITH PROMOTIONS ===");
+                    Console.WriteLine($"BasePrice: {model.BasePrice}");
+                    Console.WriteLine($"DiscountAmount: {model.DiscountAmount}");
+                    Console.WriteLine($"AdditionalFees: {model.AdditionalFees}");
+                    Console.WriteLine($"TaxRate: {model.TaxRate}");
+                    Console.WriteLine($"Auto-calculated Final Price: {model.FinalPrice}");
+                    
+                    try
+                    {
+                        await _quotationService.AddAsync(model);
+                        TempData["Success"] = "Báo giá đã được tạo thành công!";
+                        return RedirectToAction("Index", "Customer");
+                    }
+                    catch (Exception createEx)
+                    {
+                        TempData["Error"] = $"Lỗi khi tạo báo giá: {createEx.Message}";
+                        await LoadViewDataForCreate(model.CustomerId);
+                        return View(model);
+                    }
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in quotation creation: {ex.Message}");
-                TempData["Error"] = $"Error creating quotation: {ex.Message}";
-                
-                // Reload customer data and variants
-                var customerResponse = await _customerService.GetByIdAsync(model.CustomerId);
-                if (customerResponse != null && customerResponse.Success)
-                {
-                    ViewBag.Customer = customerResponse.Data;
-                }
-                
-                var variantsResponse = await _vehicleVariantService.GetAllAsync();
-                ViewBag.VehicleVariants = variantsResponse.Success ? variantsResponse.Data : new List<VehicleVariantViewModel>();
-                
-                ViewBag.CustomerId = model.CustomerId;
-                ViewBag.DealerId = GetDealerIdFromSession();
+                TempData["Error"] = $"Có lỗi hệ thống xảy ra: {ex.Message}";
+                await LoadViewDataForCreate(model.CustomerId);
                 return View(model);
             }
-
-            Console.WriteLine("ModelState valid, proceeding with service call...");
-            
-            await _quotationService.AddAsync(model);
-            Console.WriteLine("Service call completed successfully");
-            
-            TempData["Success"] = "Báo giá đã được tạo thành công!";
-            return RedirectToAction("Index", "Customer");
-
         }
-        catch (Exception ex)
+
+        private async Task LoadViewDataForCreate(int customerId)
         {
-            Console.WriteLine($"Exception in Create POST: {ex.Message}");
-            Console.WriteLine($"Stack trace: {ex.StackTrace}");
-            
-            TempData["Error"] = "Có lỗi hệ thống xảy ra. Vui lòng thử lại.";
-            
-            // Reload data for error case
-            var customerData = await _customerService.GetByIdAsync(model.CustomerId);
-            if (customerData != null && customerData.Success)
+            // Load customer data
+            var customerResponse = await _customerService.GetByIdAsync(customerId);
+            if (customerResponse != null && customerResponse.Success)
             {
-                ViewBag.Customer = customerData.Data;
+                ViewBag.Customer = customerResponse.Data;
             }
-            
-            var variantsData = await _vehicleVariantService.GetAllAsync();
-            ViewBag.VehicleVariants = variantsData.Success ? variantsData.Data : new List<VehicleVariantViewModel>();
-            
-            ViewBag.CustomerId = model.CustomerId;
+
+            // Load vehicle variants
+            var variantsResponse = await _vehicleVariantService.GetAllAsync();
+            ViewBag.VehicleVariants = variantsResponse.Success ? variantsResponse.Data : new List<VehicleVariantViewModel>();
+
+            ViewBag.CustomerId = customerId;
             ViewBag.DealerId = GetDealerIdFromSession();
-            
-            return View(model);
-        }
-    }        [HttpGet]
+        }        [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
             var quotation = await _quotationService.GetDetailsByIdAsync(id);
@@ -195,10 +308,25 @@ namespace ASM1.WebMVC.Controllers
         {
             try
             {
+                // Debug: log incoming request
+                Console.WriteLine($"CalculateWithPromotions request: {request}");
+                
                 int variantId = request.variantId;
                 int customerId = request.customerId;
                 decimal additionalFees = request.additionalFees ?? 0;
                 decimal taxRate = request.taxRate ?? 0.1m;
+
+                Console.WriteLine($"Parsed values - VariantId: {variantId}, CustomerId: {customerId}, Fees: {additionalFees}, Tax: {taxRate}");
+
+                if (customerId <= 0)
+                {
+                    return Json(new { success = false, message = "Customer ID is invalid" });
+                }
+
+                if (variantId <= 0)
+                {
+                    return Json(new { success = false, message = "Variant ID is invalid" });
+                }
 
                 var pricingResult = await _quotationService.CalculatePricingWithPromotionsAsync(variantId, customerId, additionalFees, taxRate);
                 return Json(new { success = true, data = pricingResult });
@@ -290,7 +418,33 @@ namespace ASM1.WebMVC.Controllers
 
             ViewBag.DealerId = GetDealerIdFromSession();
 
-            return View("Create", quotation); // Reuse Create view for editing
+            // Convert QuotationViewModel to QuotationCreateViewModel
+            // Get the vehicle variant to get base price
+            var variantResponse = await _vehicleVariantService.GetByIdAsync(quotation.VariantId);
+            var basePrice = quotation.Price; // Default fallback
+            
+            if (variantResponse != null && variantResponse.Success && variantResponse.Data != null)
+            {
+                basePrice = variantResponse.Data.Price ?? quotation.Price;
+            }
+
+            var editModel = new QuotationCreateViewModel
+            {
+                QuotationId = id, // Set the ID for edit mode
+                CustomerId = quotation.CustomerId,
+                VariantId = quotation.VariantId,
+                DealerId = quotation.DealerId,
+                BasePrice = basePrice, // Use actual base price from variant
+                DiscountAmount = 0, // Default values - you might want to calculate these from stored data
+                AdditionalFees = 0,
+                TaxRate = 0.1m,
+                DiscountDescription = "",
+                FeesDescription = "",
+                CreatedAt = quotation.CreatedAt,
+                Status = quotation.Status ?? "Pending"
+            };
+
+            return View("Create", editModel);
         }
 
         [HttpGet]

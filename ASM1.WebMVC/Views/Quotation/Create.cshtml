@@ -1,7 +1,7 @@
-@model ASM1.Service.Models.QuotationCreateViewModel
+@model ASM1.WebMVC.Models.QuotationCreateViewModel
 @{
     ViewData["Title"] = Model?.IsEdit == true ? "Chỉnh sửa báo giá" : "Tạo báo giá mới";
-    var customer = ViewBag.Customer as ASM1.Service.Models.CustomerViewModel;
+    var customer = ViewBag.Customer as ASM1.WebMVC.Models.CustomerViewModel;
 }
 
 <div class="container mt-4">
@@ -80,7 +80,6 @@
                     <form asp-action="Create" method="post">
                         @Html.AntiForgeryToken()
                         <input type="hidden" asp-for="QuotationId" />
-                        <input type="hidden" asp-for="CustomerId" id="CustomerId" />
                         <input type="hidden" asp-for="DealerId" />
                         <input type="hidden" asp-for="BasePrice" id="HiddenBasePrice" />
                         <input type="hidden" asp-for="DiscountAmount" />
@@ -92,7 +91,43 @@
                         <input type="hidden" asp-for="CreatedAt" />
 
                         <div class="row">
-                            <div class="col-md-12 mb-3">
+                            <!-- Customer Selection -->
+                            <div class="col-md-6 mb-3">
+                                <label for="CustomerId" class="form-label">
+                                    <i class="bi bi-person"></i> Khách hàng *
+                                </label>
+                                @{
+                                    var customers = ViewBag.Customers as IEnumerable<ASM1.WebMVC.Models.CustomerViewModel>;
+                                    var customerCount = customers?.Count() ?? 0;
+                                }
+                                <select asp-for="CustomerId" class="form-select" id="CustomerId" required>
+                                    <option value="">-- Chọn khách hàng --</option>
+                                    <!-- Debug info -->
+                                    @if (customerCount == 0)
+                                    {
+                                        <option value="" disabled>Không có khách hàng nào</option>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var customer in customers!)
+                                        {
+                                            <option value="@customer.CustomerId" 
+                                                    data-name="@customer.FullName" 
+                                                    data-email="@customer.Email" 
+                                                    data-phone="@customer.Phone"
+                                                    selected="@(Model?.CustomerId == customer.CustomerId)">
+                                                @customer.FullName - @customer.Email
+                                            </option>
+                                        }
+                                    }
+                                </select>
+                                <span asp-validation-for="CustomerId" class="text-danger"></span>
+                                <div class="form-text">
+                                    Chọn khách hàng muốn tạo báo giá (Có @customerCount khách hàng)
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
                                 <label for="VariantId" class="form-label">
                                     <i class="bi bi-car-front"></i> Vehicle Variant *
                                 </label>
@@ -100,7 +135,7 @@
                                     <option value="">-- Chọn variant xe --</option>
                                     @if (ViewBag.VehicleVariants != null)
                                     {
-                                        @foreach (var variant in (IEnumerable<ASM1.Service.Models.VehicleVariantViewModel>)ViewBag.VehicleVariants)
+                                        @foreach (var variant in (IEnumerable<ASM1.WebMVC.Models.VehicleVariantViewModel>)ViewBag.VehicleVariants)
                                         {
                                             <option value="@variant.VariantId" data-price="@variant.Price">
                                                 @variant.FullName - @(variant.Color ?? "N/A") - @(variant.ProductYear?.ToString() ?? "N/A") 
@@ -244,6 +279,9 @@
                                 <i class="bi bi-arrow-left"></i> Quay lại danh sách khách hàng
                             </a>
                             <div>
+                                <button type="button" class="btn btn-info me-2" onclick="debugForm()">
+                                    <i class="bi bi-bug"></i> Debug Form
+                                </button>
                                 <button type="button" class="btn btn-outline-warning me-2" onclick="resetPricingFields()">
                                     <i class="bi bi-arrow-clockwise"></i> Reset Pricing
                                 </button>
@@ -357,12 +395,20 @@
 
             function updateHiddenFields() {
                 // Update hidden form fields with current display values
-                $('#HiddenBasePrice').val(parseFloat($('#BasePriceDisplay').val()) || 0);
+                var basePrice = parseFloat($('#BasePriceDisplay').val()) || 0;
+                $('#HiddenBasePrice').val(basePrice);
+                $('input[name="BasePrice"]').val(basePrice);
                 $('input[name="DiscountAmount"]').val(parseFloat($('#DiscountAmountDisplay').val()) || 0);
                 $('input[name="AdditionalFees"]').val(parseFloat($('#AdditionalFeesDisplay').val()) || 0);
                 $('input[name="TaxRate"]').val(parseFloat($('#TaxRateDisplay').val()) || 0.1);
                 $('input[name="DiscountDescription"]').val($('#DiscountDescriptionDisplay').val() || '');
                 $('input[name="FeesDescription"]').val($('#FeesDescriptionDisplay').val() || '');
+                
+                console.log('Hidden fields updated:', {
+                    basePrice: basePrice,
+                    discountAmount: parseFloat($('#DiscountAmountDisplay').val()) || 0,
+                    additionalFees: parseFloat($('#AdditionalFeesDisplay').val()) || 0
+                });
             }
 
             function calculateFinalPrice() {
@@ -467,6 +513,86 @@
                 // Show success message
                 showToast('Đã áp dụng giảm giá ' + percentage + '% thành công!', 'success', 'Thành công');
             }
+
+            // Initialize form
+            function initializeForm() {
+                console.log('=== FORM INITIALIZATION START ===');
+                
+                // Auto-select first customer if none selected
+                var currentCustomerId = $('#CustomerId').val();
+                console.log('Current customer ID:', currentCustomerId);
+                
+                if (!currentCustomerId || currentCustomerId === '') {
+                    var firstCustomerOption = $('#CustomerId option:not([value=""]):not([disabled]):first');
+                    if (firstCustomerOption.length > 0) {
+                        var firstCustomerId = firstCustomerOption.val();
+                        console.log('Auto-selecting first customer:', firstCustomerId);
+                        $('#CustomerId').val(firstCustomerId);
+                        $('#CustomerId').trigger('change');
+                    } else {
+                        console.log('No customers available for auto-selection');
+                    }
+                } else {
+                    console.log('Customer already selected:', currentCustomerId);
+                    // Verify selection is valid
+                    if ($('#CustomerId option[value="' + currentCustomerId + '"]').length === 0) {
+                        console.log('Customer not found in dropdown, clearing selection');
+                        $('#CustomerId').val('');
+                    } else {
+                        $('#CustomerId').trigger('change');
+                    }
+                }
+                
+                // Handle variant selection
+                var currentVariantId = $('#VariantId').val();
+                console.log('Current variant ID:', currentVariantId);
+                
+                // If variant is already selected, trigger the change event to load pricing
+                if (currentVariantId && currentVariantId !== '' && currentVariantId !== '0') {
+                    $('#VariantId').val(currentVariantId);
+                    $('#VariantId').trigger('change');
+                    console.log('Pre-selected variant ID and triggered change:', currentVariantId);
+                } else {
+                    console.log('No variant pre-selected');
+                }
+                
+                console.log('=== FORM INITIALIZATION COMPLETE ===');
+            }
+
+            // Handle customer selection
+            $('#CustomerId').change(function() {
+                var selectedCustomerId = $(this).val();
+                var selectedOption = $(this).find('option:selected');
+                
+                console.log('Customer dropdown changed:', {
+                    selectedValue: selectedCustomerId,
+                    optionExists: selectedOption.length > 0
+                });
+                
+                if (selectedCustomerId && selectedCustomerId !== '') {
+                    console.log('Customer selected:', {
+                        id: selectedCustomerId,
+                        formValue: $(this).val()
+                    });
+                    
+                    // Update customer display information if exists
+                    var customerName = selectedOption.data('name');
+                    var customerEmail = selectedOption.data('email');
+                    var customerPhone = selectedOption.data('phone');
+                    
+                    console.log('Customer details:', {
+                        id: selectedCustomerId,
+                        name: customerName,
+                        email: customerEmail,
+                        phone: customerPhone
+                    });
+                    
+                    showToast('Đã chọn khách hàng ' + (customerName || 'ID: ' + selectedCustomerId) + ' thành công!', 'success', 'Đã chọn khách hàng');
+                } else {
+                    $('#CustomerId').val('');
+                    console.log('Customer selection cleared');
+                }
+            });
 
             $('#VariantId').change(function() {
                 var selectedOption = $(this).find('option:selected');
@@ -824,7 +950,15 @@
             $('#submitBtn').click(function(e) {
                 console.log('Main submit button clicked');
                 
-                // Don't prevent default, let the form submit event handler take over
+                // Validate customer selection
+                var customerId = $('#CustomerId').val();
+                if (!customerId || customerId === '') {
+                    alert('Vui lòng chọn khách hàng trước khi tạo báo giá!');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // Validate variant selection
                 var variantId = $('#VariantId').val();
                 if (!variantId || variantId === '') {
                     alert('Vui lòng chọn variant xe trước khi tạo báo giá!');
@@ -832,9 +966,58 @@
                     return false;
                 }
                 
-                console.log('Main submit button - variant selected, triggering form submit');
+                console.log('Form validation passed - submitting with customer:', customerId, 'and variant:', variantId);
                 // The form submit event handler will handle the rest
             });
+            
+            // Form submit handler - final sync before submission
+            $('form').submit(function(e) {
+                console.log('Form submit triggered');
+                
+                // Update all hidden pricing fields
+                updateHiddenFields();
+                
+                // Log final values for debugging
+                console.log('Final form values before submit:', {
+                    customerId: $('#CustomerId').val(),
+                    variantId: $('#VariantId').val(),
+                    basePrice: $('#HiddenBasePrice').val(),
+                    discountAmount: $('input[name="DiscountAmount"]').val(),
+                    additionalFees: $('input[name="AdditionalFees"]').val()
+                });
+                
+                return true; // Allow form submission
+            });
+            
+            // Initialize the form after all event handlers are set up
+            initializeForm();
         });
+        
+        // Debug function to check form state
+        function debugForm() {
+            console.log('=== FORM DEBUG INFO ===');
+            
+            // Check dropdown values
+            var customerDropdown = $('#CustomerId').val();
+            var variantDropdown = $('#VariantId').val();
+            
+            // Check display field values
+            var basePriceDisplay = $('#BasePriceDisplay').val();
+            var discountDisplay = $('#DiscountAmountDisplay').val();
+            
+            console.log('Form Values:', {
+                customer: customerDropdown,
+                variant: variantDropdown,
+                basePrice: basePriceDisplay,
+                discount: discountDisplay
+            });
+            
+            // Show in alert too
+            alert('Debug Info (check console for details):\n' +
+                'Customer Dropdown: ' + customerDropdown + '\n' +
+                'Customer Hidden: ' + customerHidden + '\n' +
+                'Variant: ' + variantDropdown + '\n' +
+                'Base Price: ' + basePriceDisplay);
+        }
     </script>
 }

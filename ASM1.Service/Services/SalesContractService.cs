@@ -17,37 +17,72 @@ namespace ASM1.Service.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<SalesContractViewModel>> GetAllAsync()
+        public async Task<ServiceResponse<IEnumerable<SalesContract>>> GetAllAsync()
         {
-            var contracts = await _unitOfWork.SalesContracts.GetAllAsync();
-            return _mapper.Map<IEnumerable<SalesContractViewModel>>(contracts);
+            try
+            {
+                var contracts = await _unitOfWork.SalesContracts.GetAllAsync();
+                return ServiceResponse<IEnumerable<SalesContract>>.SuccessResponse(contracts);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResponse<IEnumerable<SalesContract>>.ErrorResponse("Error getting sales contracts", ex.Message);
+            }
         }
 
-        public async Task<SalesContractViewModel?> GetByIdAsync(int id)
+        public async Task<ServiceResponse<SalesContract?>> GetByIdAsync(int id)
         {
-            var contract = await _unitOfWork.SalesContracts.GetByIdAsync(id);
-            return contract == null ? null : _mapper.Map<SalesContractViewModel>(contract);
+            try
+            {
+                var contract = await _unitOfWork.SalesContracts.GetByIdAsync(id);
+                return ServiceResponse<SalesContract?>.SuccessResponse(contract);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResponse<SalesContract?>.ErrorResponse("Error getting sales contract", ex.Message);
+            }
         }
 
-        public async Task AddAsync(SalesContractCreateViewModel contractVm)
+        public async Task<ServiceResponse> AddAsync(SalesContract contract)
         {
-            var contract = _mapper.Map<SalesContract>(contractVm);
-            contract.SaleContractId = await _unitOfWork.SalesContracts.GenerateUniqueSalesContractIdAsync();
-            await _unitOfWork.SalesContracts.AddAsync(contract);
-            await _unitOfWork.SaveChangesAsync();
+            try
+            {
+                await _unitOfWork.SalesContracts.AddAsync(contract);
+                await _unitOfWork.SaveChangesAsync();
+                return ServiceResponse.SuccessResponse("Sales contract added successfully");
+            }
+            catch (Exception ex)
+            {
+                return ServiceResponse.ErrorResponse("Error adding sales contract", ex.Message);
+            }
         }
 
-        public async Task UpdateAsync(SalesContractViewModel contractVm)
+        public async Task<ServiceResponse> UpdateAsync(SalesContract contract)
         {
-            var contract = _mapper.Map<SalesContract>(contractVm);
-            await _unitOfWork.SalesContracts.UpdateAsync(contract);
-            await _unitOfWork.SaveChangesAsync();
+            try
+            {
+                await _unitOfWork.SalesContracts.UpdateAsync(contract);
+                await _unitOfWork.SaveChangesAsync();
+                return ServiceResponse.SuccessResponse("Sales contract updated successfully");
+            }
+            catch (Exception ex)
+            {
+                return ServiceResponse.ErrorResponse("Error updating sales contract", ex.Message);
+            }
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task<ServiceResponse> DeleteAsync(int id)
         {
-            await _unitOfWork.SalesContracts.DeleteAsync(id);
-            await _unitOfWork.SaveChangesAsync();
+            try
+            {
+                await _unitOfWork.SalesContracts.DeleteAsync(id);
+                await _unitOfWork.SaveChangesAsync();
+                return ServiceResponse.SuccessResponse("Sales contract deleted successfully");
+            }
+            catch (Exception ex)
+            {
+                return ServiceResponse.ErrorResponse("Error deleting sales contract", ex.Message);
+            }
         }
     }
 }

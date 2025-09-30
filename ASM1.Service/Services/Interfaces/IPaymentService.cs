@@ -1,13 +1,13 @@
-using ASM1.Service.Models;
+using ASM1.Repository.Models;
 
 namespace ASM1.Service.Services.Interfaces
 {
     public interface IPaymentService
     {
-        Task<IEnumerable<PaymentViewModel>> GetAllAsync();
-        Task<PaymentViewModel?> GetByIdAsync(int id);
-        Task AddAsync(PaymentCreateViewModel payment);
-        Task UpdateAsync(PaymentViewModel payment);
+        Task<IEnumerable<Payment>> GetAllAsync();
+        Task<Payment?> GetByIdAsync(int id);
+        Task AddAsync(Payment payment);
+        Task UpdateAsync(Payment payment);
         Task DeleteAsync(int id);
     }
 }

@@ -1,470 +1,346 @@
-@model ASM1.Service.Models.QuotationDetailViewModel
+@model ASM1.WebMVC.Models.QuotationDetailViewModel
 @{
     ViewData["Title"] = "Chi tiết báo giá #" + Model.QuotationId;
 }
 
-<!-- Custom CSS -->
-<link rel="stylesheet" href="~/css/quotation-detail.css" />
-
-<!-- Print Styles -->
 <style>
-    @@media print {
-        .no-print {
-            display: none !important;
-        }
-        .card {
-            border: none !important;
-            box-shadow: none !important;
-        }
-        body {
-            font-size: 12px;
-        }
-        .company-logo {
-            max-height: 50px;
-        }
-        .quotation-header {
-            background: #f8f9fa !important;
-            color: #000 !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
+    .quotation-container {
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 30px;
+        margin: 20px auto;
+        max-width: 800px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     
     .quotation-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 20px;
-        border-radius: 10px 10px 0 0;
+        text-align: center;
+        border-bottom: 2px solid #333;
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .company-info {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    
+    .quotation-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        margin: 15px 0;
+    }
+    
+    .info-section {
+        margin-bottom: 25px;
+    }
+    
+    .section-title {
+        font-size: 16px;
+        font-weight: bold;
+        color: #333;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 5px;
+        margin-bottom: 15px;
+    }
+    
+    .info-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .info-table td {
+        padding: 8px 0;
+        border-bottom: 1px solid #f5f5f5;
+    }
+    
+    .info-table td:first-child {
+        width: 30%;
+        font-weight: bold;
+        color: #666;
+    }
+    
+    .price-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+    
+    .price-table th,
+    .price-table td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .price-table th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+    }
+    
+    .price-table .amount {
+        text-align: right;
+        font-weight: bold;
+    }
+    
+    .total-row {
+        background-color: #e9ecef;
+        font-weight: bold;
+        font-size: 18px;
+    }
+    
+    .final-price {
+        background-color: #d4edda;
+        color: #155724;
+        text-align: center;
+        padding: 15px;
+        border-radius: 5px;
+        margin-top: 20px;
+        font-size: 20px;
+        font-weight: bold;
     }
     
     .status-badge {
-        font-size: 14px;
-        padding: 10px 20px;
-        border-radius: 25px;
-        font-weight: 600;
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 15px;
+        font-weight: bold;
+        font-size: 12px;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        white-space: nowrap;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
     }
     
-    .status-badge i {
-        font-size: 16px;
-    }
+    .status-pending { background-color: #fff3cd; color: #856404; }
+    .status-approved { background-color: #d4edda; color: #155724; }
+    .status-cancelled { background-color: #f8d7da; color: #721c24; }
     
-    .price-highlight {
-        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-        color: white;
-        padding: 20px;
-        border-radius: 10px;
+    .actions {
         text-align: center;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #ddd;
     }
     
-    .section-card {
+    .btn {
+        padding: 8px 20px;
+        margin: 0 5px;
         border: none;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        display: inline-block;
+        cursor: pointer;
     }
     
-    .section-header {
-        background-color: #f8f9fa;
-        border-bottom: 2px solid #e9ecef;
-        padding: 15px 20px;
-        font-weight: 600;
+    .btn-primary { background-color: #007bff; color: white; }
+    .btn-secondary { background-color: #6c757d; color: white; }
+    .btn-success { background-color: #28a745; color: white; }
+    .btn-warning { background-color: #ffc107; color: #212529; }
+    .btn-danger { background-color: #dc3545; color: white; }
+    
+    @@media print {
+        .actions { display: none; }
+        .quotation-container { box-shadow: none; border: none; }
     }
 </style>
 
-<div class="container-fluid mt-4">
-    <!-- Header Section -->
-    <div class="row no-print mb-3">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a asp-action="Index">Báo giá</a></li>
-                        <li class="breadcrumb-item active">Chi tiết #@Model.QuotationId</li>
-                    </ol>
-                </nav>
-                <div>
-                    <button class="btn btn-outline-primary me-2" onclick="window.print()" style="display: none;">
-                        <i class="bi bi-printer"></i> In báo giá
-                    </button>
-                    <button class="btn btn-outline-success" onclick="exportToPDF()" style="display: none;">
-                        <i class="bi bi-file-pdf"></i> Xuất PDF
-                    </button>
-                </div>
-            </div>
+<div class="quotation-container">
+    <!-- Header -->
+    <div class="quotation-header">
+        <div class="company-info">
+            <h2>CÔNG TY TNHH AUTOSALES</h2>
+            <p>Địa chỉ: 123 Đường ABC, Quận XYZ, TP.HCM</p>
+            <p>Điện thoại: (028) 1234-5678 | Email: info@autosales.com</p>
+        </div>
+        <div class="quotation-title">BÁO GIÁ BÁN XE</div>
+        <div>
+            <strong>Mã báo giá: #@Model.QuotationId</strong>
+            <span class="status-badge status-@(Model.Status?.ToLower() ?? "pending")">
+                @(Model.Status?.ToUpper() ?? "CHỜ DUYỆT")
+            </span>
         </div>
     </div>
 
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="card shadow-lg">
-                <!-- Company Header -->
-                <div class="quotation-header">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <div class="d-flex align-items-center">
-                                <div class="me-3">
-                                    <i class="bi bi-building display-6"></i>
-                                </div>
-                                <div>
-                                    <h2 class="mb-1">AutoSales Company</h2>
-                                    <p class="mb-0">Đại lý ủy quyền chính hãng</p>
-                                    <small>123 Đường ABC, Quận XYZ, TP.HCM | Tel: (028) 1234-5678</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <h3 class="mb-2">BÁO GIÁ</h3>
-                            <h4 class="mb-3">#@Model.QuotationId</h4>
-                            <div class="d-flex justify-content-end">
-                                @switch (Model.Status?.ToLower())
-                                {
-                                    case "pending":
-                                        <span class="status-badge bg-warning text-dark">
-                                            <i class="bi bi-clock"></i> CHỜ DUYỆT
-                                        </span>
-                                        break;
-                                    case "approved":
-                                        <span class="status-badge bg-success">
-                                            <i class="bi bi-check-circle"></i> ĐÃ DUYỆT
-                                        </span>
-                                        break;
-                                    case "cancelled":
-                                        <span class="status-badge bg-danger">
-                                            <i class="bi bi-x-circle"></i> ĐÃ HỦY
-                                        </span>
-                                        break;
-                                    case "rejected":
-                                        <span class="status-badge bg-danger">
-                                            <i class="bi bi-x-circle"></i> TỪ CHỐI
-                                        </span>
-                                        break;
-                                    default:
-                                        <span class="status-badge bg-secondary">
-                                            @(Model.Status?.ToUpper() ?? "CHƯA XÁC ĐỊNH")
-                                        </span>
-                                        break;
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body p-0">
-                    <!-- Quote Information -->
-                    <div class="row g-0 mb-4">
-                        <div class="col-md-6">
-                            <div class="p-4 border-end">
-                                <h6 class="text-muted mb-3">
-                                    <i class="bi bi-calendar3"></i> THÔNG TIN BÁO GIÁ
-                                </h6>
-                                <table class="table table-borderless">
-                                    <tr>
-                                        <td class="text-muted">Ngày tạo:</td>
-                                        <td><strong>@(Model.CreatedAt?.ToString("dd/MM/yyyy") ?? "Chưa xác định")</strong></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-muted">Thời gian:</td>
-                                        <td><strong>@(Model.CreatedAt?.ToString("HH:mm") ?? "Chưa xác định")</strong></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-muted">Nhân viên:</td>
-                                        <td><strong>@Model.DealerName</strong></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-muted">Hiệu lực:</td>
-                                        <td><strong>30 ngày</strong></td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="p-4">
-                                <h6 class="text-muted mb-3">
-                                    <i class="bi bi-person-badge"></i> THÔNG TIN KHÁCH HÀNG
-                                </h6>
-                                <table class="table table-borderless">
-                                    <tr>
-                                        <td class="text-muted">Họ tên:</td>
-                                        <td><strong>@Model.CustomerName</strong></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-muted">Email:</td>
-                                        <td><strong>@Model.CustomerEmail</strong></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-muted">Điện thoại:</td>
-                                        <td><strong>@(Model.CustomerPhone ?? "Chưa có")</strong></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-muted">Mã KH:</td>
-                                        <td><strong>KH@(Model.QuotationId.ToString("D6"))</strong></td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+    <!-- Thông tin báo giá -->
+    <div class="info-section">
+        <div class="section-title">THÔNG TIN BÁO GIÁ</div>
+        <table class="info-table">
+            <tr>
+                <td>Ngày tạo:</td>
+                <td>@(Model.CreatedAt?.ToString("dd/MM/yyyy") ?? "Chưa xác định")</td>
+            </tr>
+            <tr>
+                <td>Thời gian:</td>
+                <td>@(Model.CreatedAt?.ToString("HH:mm") ?? "Chưa xác định")</td>
+            </tr>
+            <tr>
+                <td>Nhân viên tư vấn:</td>
+                <td>@Model.DealerName</td>
+            </tr>
+            <tr>
+                <td>Thời hạn báo giá:</td>
+                <td>30 ngày</td>
+            </tr>
+        </table>
+    </div>
 
-                    <!-- Vehicle Information -->
-                    <div class="section-card">
-                        <div class="section-header">
-                            <h5 class="mb-0">
-                                <i class="bi bi-car-front-fill text-primary"></i> THÔNG TIN XE
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <div class="row">
-                                        <div class="col-6">
-                                            <table class="table table-borderless">
-                                                <tr>
-                                                    <td class="text-muted">Hãng xe:</td>
-                                                    <td><strong>@Model.VehicleBrand</strong></td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="text-muted">Model:</td>
-                                                    <td><strong>@Model.VehicleModel</strong></td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="text-muted">Phiên bản:</td>
-                                                    <td><strong>@Model.VehicleVersion</strong></td>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                        <div class="col-6">
-                                            <table class="table table-borderless">
-                                                <tr>
-                                                    <td class="text-muted">Màu sắc:</td>
-                                                    <td><strong>@(Model.VehicleColor ?? "Chưa xác định")</strong></td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="text-muted">Năm sản xuất:</td>
-                                                    <td><strong>@(Model.VehicleYear?.ToString() ?? "Chưa xác định")</strong></td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="text-muted">Bảo hành:</td>
-                                                    <td><strong>3 năm hoặc 100.000 km</strong></td>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 text-center">
-                                    <div class="p-3 bg-light rounded">
-                                        <i class="bi bi-car-front display-1 text-muted"></i>
-                                        <p class="text-muted small mt-2">Hình ảnh minh họa</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <!-- Thông tin khách hàng -->
+    <div class="info-section">
+        <div class="section-title">THÔNG TIN KHÁCH HÀNG</div>
+        <table class="info-table">
+            <tr>
+                <td>Họ và tên:</td>
+                <td>@Model.CustomerName</td>
+            </tr>
+            <tr>
+                <td>Email:</td>
+                <td>@Model.CustomerEmail</td>
+            </tr>
+            <tr>
+                <td>Số điện thoại:</td>
+                <td>@(Model.CustomerPhone ?? "Chưa có")</td>
+            </tr>
+            <tr>
+                <td>Mã khách hàng:</td>
+                <td>KH@(Model.QuotationId.ToString("D6"))</td>
+            </tr>
+        </table>
+    </div>
 
-                    <!-- Price Breakdown -->
-                    <div class="section-card">
-                        <div class="section-header">
-                            <h5 class="mb-0">
-                                <i class="bi bi-calculator-fill text-success"></i> CHI TIẾT GIÁ BÁN
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-lg-8">
-                                    <div class="table-responsive">
-                                        <table class="table table-hover">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th width="60%">Mô tả</th>
-                                                    <th width="40%" class="text-end">Số tiền (VND)</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach (var item in Model.PriceBreakdown)
-                                                {
-                                                    <tr class="@(item.Type == "discount" && item.Amount < 0 ? "table-success" : item.Type == "base" ? "table-info" : item.Type == "tax" ? "table-warning" : "")">
-                                                        <td>
-                                                            @if (item.Type == "base")
-                                                            {
-                                                                <i class="bi bi-tag-fill text-primary me-2"></i>
-                                                            }
-                                                            else if (item.Type == "discount")
-                                                            {
-                                                                <i class="bi bi-percent text-success me-2"></i>
-                                                            }
-                                                            else if (item.Type == "fee")
-                                                            {
-                                                                <i class="bi bi-plus-circle text-info me-2"></i>
-                                                            }
-                                                            else if (item.Type == "tax")
-                                                            {
-                                                                <i class="bi bi-receipt text-warning me-2"></i>
-                                                            }
-                                                            @item.Description
-                                                        </td>
-                                                        <td class="text-end fw-bold">
-                                                            @if (item.Type == "discount")
-                                                            {
-                                                                <span class="text-success">-@(item.Amount.ToString("N0"))</span>
-                                                            }
-                                                            else if (item.Amount >= 0)
-                                                            {
-                                                                <span class="text-primary">@(item.Amount.ToString("N0"))</span>
-                                                            }
-                                                            else
-                                                            {
-                                                                <span class="text-danger">@(item.Amount.ToString("N0"))</span>
-                                                            }
-                                                        </td>
-                                                    </tr>
-                                                }
-                                            </tbody>
-                                            <tfoot>
-                                                <tr class="table-dark">
-                                                    <th class="fs-5">
-                                                        <i class="bi bi-currency-dollar me-2"></i>TỔNG CỘNG
-                                                    </th>
-                                                    <th class="text-end fs-4 text-warning">@(Model.FinalPrice.ToString("N0"))</th>
-                                                </tr>
-                                            </tfoot>
-                                        </table>
-                                    </div>
-                                </div>
-                                <div class="col-lg-4">
-                                    <div class="price-highlight">
-                                        <h6 class="mb-2">
-                                            <i class="bi bi-star-fill"></i> GIÁ CUỐI CÙNG
-                                        </h6>
-                                        <div class="display-5 fw-bold mb-2">
-                                            @(Model.FinalPrice.ToString("N0"))
-                                        </div>
-                                        <p class="mb-0 small">VND (Đã bao gồm VAT)</p>
-                                    </div>
-                                    
-                                    <div class="mt-3 p-3 bg-light rounded">
-                                        <h6 class="text-muted mb-3">
-                                            <i class="bi bi-info-circle"></i> Thông tin bổ sung
-                                        </h6>
-                                        @if (!string.IsNullOrEmpty(Model.DiscountDescription))
-                                        {
-                                            <p class="small mb-2">
-                                                <strong>Khuyến mãi:</strong><br>
-                                                @Model.DiscountDescription
-                                            </p>
-                                        }
-                                        @if (!string.IsNullOrEmpty(Model.FeesDescription))
-                                        {
-                                            <p class="small mb-2">
-                                                <strong>Phí bổ sung:</strong><br>
-                                                @Model.FeesDescription
-                                            </p>
-                                        }
-                                        <p class="small mb-0">
-                                            <strong>Thuế suất:</strong> @(Model.TaxRate.ToString("P0"))<br>
-                                            <strong>Thuế VAT:</strong> @(Model.TaxAmount.ToString("N0")) VND
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <!-- Thông tin xe -->
+    <div class="info-section">
+        <div class="section-title">THÔNG TIN XE</div>
+        <table class="info-table">
+            <tr>
+                <td>Hãng xe:</td>
+                <td>@Model.VehicleBrand</td>
+            </tr>
+            <tr>
+                <td>Dòng xe:</td>
+                <td>@Model.VehicleModel</td>
+            </tr>
+            <tr>
+                <td>Phiên bản:</td>
+                <td>@Model.VehicleVersion</td>
+            </tr>
+            <tr>
+                <td>Màu sắc:</td>
+                <td>@(Model.VehicleColor ?? "Chưa xác định")</td>
+            </tr>
+            <tr>
+                <td>Năm sản xuất:</td>
+                <td>@(Model.VehicleYear?.ToString() ?? "Chưa xác định")</td>
+            </tr>
+            <tr>
+                <td>Bảo hành:</td>
+                <td>3 năm hoặc 100.000 km</td>
+            </tr>
+        </table>
+    </div>
 
+    <!-- Chi tiết giá -->
+    <div class="info-section">
+        <div class="section-title">CHI TIẾT GIÁ BÁN</div>
+        <table class="price-table">
+            <thead>
+                <tr>
+                    <th>Mô tả</th>
+                    <th class="amount">Số tiền (VND)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.PriceBreakdown)
+                {
+                    <tr>
+                        <td>@item.Description</td>
+                        <td class="amount">
+                            @if (item.Type == "discount")
+                            {
+                                <span style="color: green;">-@(item.Amount.ToString("N0"))</span>
+                            }
+                            else
+                            {
+                                @(item.Amount.ToString("N0"))
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr class="total-row">
+                    <td>TỔNG CỘNG</td>
+                    <td class="amount">@(Model.FinalPrice.ToString("N0"))</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
 
+    <!-- Giá cuối cùng -->
+    <div class="final-price">
+        TỔNG GIÁ BÁN: @(Model.FinalPrice.ToString("N0")) VND
+        <br><small>(Đã bao gồm thuế VAT 10%)</small>
+    </div>
 
-                    <!-- Contact Information -->
-                    <div class="section-card">
-                        <div class="section-header">
-                            <h5 class="mb-0">
-                                <i class="bi bi-telephone text-primary"></i> THÔNG TIN LIÊN HỆ
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <h6>Nhân viên tư vấn:</h6>
-                                    <p class="mb-2">
-                                        <i class="bi bi-person-circle me-2"></i>
-                                        <strong>@Model.DealerName</strong>
-                                    </p>
-                                    <p class="mb-2">
-                                        <i class="bi bi-telephone me-2"></i>
-                                        <a href="tel:0901234567">0901.234.567</a>
-                                    </p>
-                                    <p class="mb-0">
-                                        <i class="bi bi-envelope me-2"></i>
-                                        <a href="mailto:sales@autosales.com">sales@autosales.com</a>
-                                    </p>
-                                </div>
-                                <div class="col-md-6">
-                                    <h6>Showroom:</h6>
-                                    <p class="mb-2">
-                                        <i class="bi bi-geo-alt me-2"></i>
-                                        123 Đường ABC, Quận XYZ, TP.HCM
-                                    </p>
-                                    <p class="mb-2">
-                                        <i class="bi bi-clock me-2"></i>
-                                        Thứ 2 - CN: 8:00 - 18:00
-                                    </p>
-                                    <p class="mb-0">
-                                        <i class="bi bi-globe me-2"></i>
-                                        <a href="#">www.autosales.com</a>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Footer -->
-                    <div class="row mt-4 pt-3 border-top">
-                        <div class="col-md-6">
-                            <p class="text-muted small mb-0">
-                                Báo giá này được tạo tự động bởi hệ thống vào lúc @(DateTime.Now.ToString("dd/MM/yyyy HH:mm"))
-                            </p>
-                        </div>
-                        <div class="col-md-6 text-end">
-                            <p class="text-muted small mb-0">
-                                Trang 1/1 - Mã báo giá: #@Model.QuotationId
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="d-flex justify-content-between mt-4 no-print">
-                        <a asp-action="Index" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left"></i> Quay lại danh sách
-                        </a>
-                        <div>
-                            <button class="btn btn-success me-2" onclick="approveQuotation(@Model.QuotationId)">
-                                <i class="bi bi-check-circle"></i> Duyệt báo giá
-                            </button>
-                            <a asp-action="Edit" asp-route-id="@Model.QuotationId" class="btn btn-warning me-2">
-                                <i class="bi bi-pencil"></i> Chỉnh sửa
-                            </a>
-                            <button class="btn btn-outline-danger" onclick="cancelQuotation(@Model.QuotationId)">
-                                <i class="bi bi-x-circle"></i> Hủy báo giá
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- Thông tin bổ sung -->
+    @if (!string.IsNullOrEmpty(Model.DiscountDescription) || !string.IsNullOrEmpty(Model.FeesDescription))
+    {
+        <div class="info-section">
+            <div class="section-title">THÔNG TIN BỔ SUNG</div>
+            @if (!string.IsNullOrEmpty(Model.DiscountDescription))
+            {
+                <p><strong>Khuyến mãi:</strong> @Model.DiscountDescription</p>
+            }
+            @if (!string.IsNullOrEmpty(Model.FeesDescription))
+            {
+                <p><strong>Phí bổ sung:</strong> @Model.FeesDescription</p>
+            }
+            <p><strong>Thuế suất VAT:</strong> @(Model.TaxRate.ToString("P0"))</p>
         </div>
+    }
+
+    <!-- Footer -->
+    <div class="info-section">
+        <div class="section-title">THÔNG TIN LIÊN HỆ</div>
+        <table class="info-table">
+            <tr>
+                <td>Nhân viên tư vấn:</td>
+                <td>@Model.DealerName</td>
+            </tr>
+            <tr>
+                <td>Điện thoại:</td>
+                <td>0901.234.567</td>
+            </tr>
+            <tr>
+                <td>Email:</td>
+                <td>sales@autosales.com</td>
+            </tr>
+            <tr>
+                <td>Showroom:</td>
+                <td>123 Đường ABC, Quận XYZ, TP.HCM</td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 12px; color: #666;">
+        Báo giá này có hiệu lực trong 30 ngày kể từ ngày tạo.<br>
+        Trang 1/1 - Mã báo giá: #@Model.QuotationId - Tạo lúc: @(DateTime.Now.ToString("dd/MM/yyyy HH:mm"))
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="actions">
+        <a asp-action="Index" class="btn btn-secondary">Quay lại danh sách</a>
+        <button onclick="window.print()" class="btn btn-primary">In báo giá</button>
+        <a asp-action="Edit" asp-route-id="@Model.QuotationId" class="btn btn-warning">Chỉnh sửa</a>
+        <button class="btn btn-success" onclick="approveQuotation(@Model.QuotationId)">Duyệt báo giá</button>
+        <button class="btn btn-danger" onclick="cancelQuotation(@Model.QuotationId)">Hủy báo giá</button>
     </div>
 </div>
 
 @Html.AntiForgeryToken()
 
-<!-- JavaScript for enhanced functionality -->
 <script>
-    function exportToPDF() {
-        // Simple print to PDF functionality
-        window.print();
-    }
-
     function approveQuotation(id) {
         if (confirm('Bạn có chắc chắn muốn duyệt báo giá này?')) {
-            // Add AJAX call to approve quotation
             fetch(`/Quotation/Approve/${id}`, {
                 method: 'POST',
                 headers: {
@@ -475,6 +351,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    alert('Báo giá đã được duyệt thành công!');
                     location.reload();
                 } else {
                     alert('Có lỗi xảy ra khi duyệt báo giá');
@@ -489,7 +366,6 @@
 
     function cancelQuotation(id) {
         if (confirm('Bạn có chắc chắn muốn hủy báo giá này?')) {
-            // Add AJAX call to cancel quotation
             fetch(`/Quotation/Cancel/${id}`, {
                 method: 'POST',
                 headers: {
@@ -512,23 +388,4 @@
             });
         }
     }
-
-    // Auto-hide loading spinner after page load
-    document.addEventListener('DOMContentLoaded', function() {
-        // Add smooth scroll behavior
-        document.documentElement.style.scrollBehavior = 'smooth';
-        
-        // Add hover effects to action buttons
-        document.querySelectorAll('.btn').forEach(btn => {
-            btn.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-2px)';
-                this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
-            });
-            
-            btn.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-                this.style.boxShadow = '';
-            });
-        });
-    });
 </script>

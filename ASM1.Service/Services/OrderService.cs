@@ -1,6 +1,5 @@
 using ASM1.Repository.Models;
 using ASM1.Repository.Repositories;
-using ASM1.Service.Models;
 using ASM1.Service.Services.Interfaces;
 using AutoMapper;
 
@@ -17,29 +16,24 @@ namespace ASM1.Service.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<OrderViewModel>> GetAllAsync()
+        public async Task<IEnumerable<Order>> GetAllAsync()
         {
-            var orders = await _unitOfWork.Orders.GetAllAsync();
-            return _mapper.Map<IEnumerable<OrderViewModel>>(orders);
+            return await _unitOfWork.Orders.GetAllAsync();
         }
 
-        public async Task<OrderViewModel?> GetByIdAsync(int id)
+        public async Task<Order?> GetByIdAsync(int id)
         {
-            var order = await _unitOfWork.Orders.GetByIdAsync(id);
-            return order == null ? null : _mapper.Map<OrderViewModel>(order);
+            return await _unitOfWork.Orders.GetByIdAsync(id);
         }
 
-        public async Task AddAsync(OrderCreateViewModel orderVm)
+        public async Task AddAsync(Order order)
         {
-            var order = _mapper.Map<Order>(orderVm);
-            order.OrderId = await _unitOfWork.Orders.GenerateUniqueOrderIdAsync();
             await _unitOfWork.Orders.AddAsync(order);
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(OrderViewModel orderVm)
+        public async Task UpdateAsync(Order order)
         {
-            var order = _mapper.Map<Order>(orderVm);
             await _unitOfWork.Orders.UpdateAsync(order);
             await _unitOfWork.SaveChangesAsync();
         }

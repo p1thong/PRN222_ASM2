@@ -1,4 +1,4 @@
-namespace ASM1.Service.Models
+namespace ASM1.WebMVC.Models
 {
     public class ServiceResponse<T>
     {
@@ -41,6 +41,7 @@ namespace ASM1.Service.Models
         }
     }
 
+    // Response không có data
     public class ServiceResponse
     {
         public bool Success { get; set; }

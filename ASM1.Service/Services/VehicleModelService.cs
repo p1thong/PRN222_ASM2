@@ -17,137 +17,57 @@ namespace ASM1.Service.Services
             _mapper = mapper;
         }
 
-        public async Task<ServiceResponse<IEnumerable<VehicleModelViewModel>>> GetAllAsync()
+        public async Task<ServiceResponse<IEnumerable<VehicleModel>>> GetAllAsync()
         {
             try
             {
-                var models = await _unitOfWork.VehicleModels.GetModelsWithVariantsAsync();
-                var modelVMs = _mapper.Map<IEnumerable<VehicleModelViewModel>>(models);
-                return new ServiceResponse<IEnumerable<VehicleModelViewModel>>
-                {
-                    Success = true,
-                    Data = modelVMs
-                };
+                var models = await _unitOfWork.VehicleModels.GetAllAsync();
+                return ServiceResponse<IEnumerable<VehicleModel>>.SuccessResponse(models);
             }
             catch (Exception ex)
             {
-                return new ServiceResponse<IEnumerable<VehicleModelViewModel>>
-                {
-                    Success = false,
-                    Message = ex.Message
-                };
+                return ServiceResponse<IEnumerable<VehicleModel>>.ErrorResponse("Error getting vehicle models", ex.Message);
             }
         }
 
-        public async Task<ServiceResponse<VehicleModelViewModel?>> GetByIdAsync(int id)
+        public async Task<ServiceResponse<VehicleModel?>> GetByIdAsync(int id)
         {
             try
             {
-                var models = await _unitOfWork.VehicleModels.GetModelsWithVariantsAsync();
-                var model = models.FirstOrDefault(m => m.VehicleModelId == id);
-                
-                if (model == null)
-                {
-                    return new ServiceResponse<VehicleModelViewModel?>
-                    {
-                        Success = false,
-                        Message = "Vehicle model not found"
-                    };
-                }
-
-                var modelVM = _mapper.Map<VehicleModelViewModel>(model);
-                return new ServiceResponse<VehicleModelViewModel?>
-                {
-                    Success = true,
-                    Data = modelVM
-                };
+                var model = await _unitOfWork.VehicleModels.GetByIdAsync(id);
+                return ServiceResponse<VehicleModel?>.SuccessResponse(model);
             }
             catch (Exception ex)
             {
-                return new ServiceResponse<VehicleModelViewModel?>
-                {
-                    Success = false,
-                    Message = ex.Message
-                };
+                return ServiceResponse<VehicleModel?>.ErrorResponse("Error getting vehicle model", ex.Message);
             }
         }
 
-        public async Task<ServiceResponse<VehicleModelDetailViewModel?>> GetDetailByIdAsync(int id)
+        public async Task<ServiceResponse<bool>> AddAsync(VehicleModel model)
         {
             try
             {
-                var model = await _unitOfWork.VehicleModels.GetModelWithVariantsAsync(id);
-                if (model == null)
-                {
-                    return new ServiceResponse<VehicleModelDetailViewModel?>
-                    {
-                        Success = false,
-                        Message = "Vehicle model not found"
-                    };
-                }
-
-                var modelDetailVM = _mapper.Map<VehicleModelDetailViewModel>(model);
-                return new ServiceResponse<VehicleModelDetailViewModel?>
-                {
-                    Success = true,
-                    Data = modelDetailVM
-                };
-            }
-            catch (Exception ex)
-            {
-                return new ServiceResponse<VehicleModelDetailViewModel?>
-                {
-                    Success = false,
-                    Message = ex.Message
-                };
-            }
-        }
-
-        public async Task<ServiceResponse<bool>> AddAsync(VehicleModelCreateViewModel modelVM)
-        {
-            try
-            {
-                var model = _mapper.Map<VehicleModel>(modelVM);
                 await _unitOfWork.VehicleModels.AddAsync(model);
                 await _unitOfWork.SaveChangesAsync();
-
-                return new ServiceResponse<bool>
-                {
-                    Success = true,
-                    Data = true
-                };
+                return ServiceResponse<bool>.SuccessResponse(true, "Vehicle model added successfully");
             }
             catch (Exception ex)
             {
-                return new ServiceResponse<bool>
-                {
-                    Success = false,
-                    Message = ex.Message
-                };
+                return ServiceResponse<bool>.ErrorResponse("Error adding vehicle model", ex.Message);
             }
         }
 
-        public async Task<ServiceResponse<bool>> UpdateAsync(VehicleModelViewModel modelVM)
+        public async Task<ServiceResponse<bool>> UpdateAsync(VehicleModel model)
         {
             try
             {
-                var model = _mapper.Map<VehicleModel>(modelVM);
                 await _unitOfWork.VehicleModels.UpdateAsync(model);
                 await _unitOfWork.SaveChangesAsync();
-
-                return new ServiceResponse<bool>
-                {
-                    Success = true,
-                    Data = true
-                };
+                return ServiceResponse<bool>.SuccessResponse(true, "Vehicle model updated successfully");
             }
             catch (Exception ex)
             {
-                return new ServiceResponse<bool>
-                {
-                    Success = false,
-                    Message = ex.Message
-                };
+                return ServiceResponse<bool>.ErrorResponse("Error updating vehicle model", ex.Message);
             }
         }
 
@@ -157,42 +77,25 @@ namespace ASM1.Service.Services
             {
                 await _unitOfWork.VehicleModels.DeleteAsync(id);
                 await _unitOfWork.SaveChangesAsync();
-
-                return new ServiceResponse<bool>
-                {
-                    Success = true,
-                    Data = true
-                };
+                return ServiceResponse<bool>.SuccessResponse(true, "Vehicle model deleted successfully");
             }
             catch (Exception ex)
             {
-                return new ServiceResponse<bool>
-                {
-                    Success = false,
-                    Message = ex.Message
-                };
+                return ServiceResponse<bool>.ErrorResponse("Error deleting vehicle model", ex.Message);
             }
         }
 
-        public async Task<ServiceResponse<IEnumerable<VehicleModelViewModel>>> GetByManufacturerAsync(int manufacturerId)
+        public async Task<ServiceResponse<IEnumerable<VehicleModel>>> GetByManufacturerAsync(int manufacturerId)
         {
             try
             {
-                var models = await _unitOfWork.VehicleModels.GetModelsByManufacturerAsync(manufacturerId);
-                var modelVMs = _mapper.Map<IEnumerable<VehicleModelViewModel>>(models);
-                return new ServiceResponse<IEnumerable<VehicleModelViewModel>>
-                {
-                    Success = true,
-                    Data = modelVMs
-                };
+                var models = await _unitOfWork.VehicleModels.GetAllAsync();
+                var manufacturerModels = models.Where(m => m.ManufacturerId == manufacturerId);
+                return ServiceResponse<IEnumerable<VehicleModel>>.SuccessResponse(manufacturerModels);
             }
             catch (Exception ex)
             {
-                return new ServiceResponse<IEnumerable<VehicleModelViewModel>>
-                {
-                    Success = false,
-                    Message = ex.Message
-                };
+                return ServiceResponse<IEnumerable<VehicleModel>>.ErrorResponse("Error getting vehicle models by manufacturer", ex.Message);
             }
         }
     }

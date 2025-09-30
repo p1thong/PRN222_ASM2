@@ -1,7 +1,9 @@
 using ASM1.Service.Services.Interfaces;
-using ASM1.Service.Models;
+using ASM1.WebMVC.Models;
 using ASM1.WebMVC.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using AutoMapper;
+using ASM1.Repository.Models;
 
 namespace ASM1.WebMVC.Controllers
 {
@@ -9,11 +11,13 @@ namespace ASM1.WebMVC.Controllers
     {
         private readonly ICustomerService _customerService;
         private readonly IQuotationService _quotationService;
+        private readonly IMapper _mapper;
 
-        public CustomerController(ICustomerService customerService, IQuotationService quotationService)
+        public CustomerController(ICustomerService customerService, IQuotationService quotationService, IMapper mapper)
         {
             _customerService = customerService;
             _quotationService = quotationService;
+            _mapper = mapper;
         }
 
         public async Task<IActionResult> Index()
@@ -22,11 +26,12 @@ namespace ASM1.WebMVC.Controllers
             
             if (!response.Success)
             {
-                this.HandleResponseWithTempData(response);
+                TempData["ErrorMessage"] = response.Message;
                 return View(new List<CustomerViewModel>());
             }
             
-            return View(response.Data ?? new List<CustomerViewModel>());
+            var customers = _mapper.Map<IEnumerable<CustomerViewModel>>(response.Data ?? new List<Customer>());
+            return View(customers.ToList());
         }
 
         [HttpGet]
@@ -105,7 +110,8 @@ namespace ASM1.WebMVC.Controllers
                 model.DealerId = dealerId.Value;
                 Console.WriteLine($"Model before service call: DealerId={model.DealerId}, FullName={model.FullName}, Email={model.Email}");
                 
-                var response = await _customerService.AddAsync(model);
+                var customer = _mapper.Map<Customer>(model);
+                var response = await _customerService.AddAsync(customer);
                 Console.WriteLine($"Service response: Success={response.Success}, Message={response.Message}");
                 
                 if (response.Errors.Any())
@@ -117,7 +123,20 @@ namespace ASM1.WebMVC.Controllers
                     }
                 }
                 
-                return HandleServiceResponse(response, "Index", "Add", model);
+                if (response.Success)
+                {
+                    TempData["SuccessMessage"] = "Thêm khách hàng thành công!";
+                    return RedirectToAction("Index");
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, response.Message);
+                    foreach (var error in response.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, error);
+                    }
+                    return View("Add", model);
+                }
             }
             
             Console.WriteLine("No DealerId found in session");
@@ -132,7 +151,7 @@ namespace ASM1.WebMVC.Controllers
             
             if (!response.Success || response.Data == null)
             {
-                this.HandleResponseWithTempData(response);
+                TempData["ErrorMessage"] = response.Message;
                 return RedirectToAction("Index");
             }
 
@@ -140,7 +159,8 @@ namespace ASM1.WebMVC.Controllers
             var quotations = await _quotationService.GetByCustomerIdAsync(id);
             ViewBag.Quotations = quotations;
 
-            return View(response.Data);
+            var customerViewModel = _mapper.Map<CustomerViewModel>(response.Data);
+            return View(customerViewModel);
         }
 
         [HttpGet]
@@ -157,11 +177,12 @@ namespace ASM1.WebMVC.Controllers
             
             if (!response.Success || response.Data == null)
             {
-                this.HandleResponseWithTempData(response);
+                TempData["ErrorMessage"] = response.Message;
                 return RedirectToAction("Index");
             }
 
-            return View(response.Data);
+            var customerViewModel = _mapper.Map<CustomerViewModel>(response.Data);
+            return View(customerViewModel);
         }
 
         [HttpPost]
@@ -180,8 +201,23 @@ namespace ASM1.WebMVC.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            var response = await _customerService.UpdateAsync(model);
-            return HandleServiceResponse(response, "Index", "Update", model);
+            var customer = _mapper.Map<Customer>(model);
+            var response = await _customerService.UpdateAsync(customer);
+            
+            if (response.Success)
+            {
+                TempData["SuccessMessage"] = "Cập nhật khách hàng thành công!";
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, response.Message);
+                foreach (var error in response.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error);
+                }
+                return View(model);
+            }
         }
 
         [HttpPost]
@@ -196,7 +232,15 @@ namespace ASM1.WebMVC.Controllers
             }
 
             var response = await _customerService.DeleteAsync(id);
-            this.HandleResponseWithTempData(response);
+            
+            if (response.Success)
+            {
+                TempData["SuccessMessage"] = "Xóa khách hàng thành công!";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = response.Message;
+            }
             
             return RedirectToAction("Index");
         }

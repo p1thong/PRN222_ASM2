@@ -1,0 +1,100 @@
+@model ASM1.Repository.Models.DealerContract
+
+@{
+    ViewData["Title"] = "Dealer Contract Details";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">Dealer Contract Details</h3>
+                    <div>
+                        <a asp-action="Edit" asp-route-id="@Model.DealerContractId" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <h5>Contract Information</h5>
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <td><strong>Contract ID:</strong></td>
+                                        <td>@Model.DealerContractId</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Dealer:</strong></td>
+                                        <td>@Model.Dealer.FullName</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Manufacturer:</strong></td>
+                                        <td>@Model.Manufacturer.Name</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Status:</strong></td>
+                                        <td>
+                                            @if (Model.SignedDate.HasValue)
+                                            {
+                                                <span class="badge bg-success">Active</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning">Pending</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <h5>Financial Terms</h5>
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <td><strong>Target Sales:</strong></td>
+                                        <td>@(Model.TargetSales?.ToString("C") ?? "Not Set")</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Credit Limit:</strong></td>
+                                        <td>@(Model.CreditLimit?.ToString("C") ?? "Not Set")</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Signed Date:</strong></td>
+                                        <td>@(Model.SignedDate?.ToString("dd/MM/yyyy") ?? "Not Signed")</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="info-box">
+                                <h5>Related Information</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Dealer Contact:</strong></p>
+                                        <p>Email: @Model.Dealer.Email</p>
+                                        <p>Phone: @(Model.Dealer.Phone ?? "N/A")</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Manufacturer Contact:</strong></p>
+                                        <p>Country: @(Model.Manufacturer.Country ?? "N/A")</p>
+                                        <p>Address: @(Model.Manufacturer.Address ?? "N/A")</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

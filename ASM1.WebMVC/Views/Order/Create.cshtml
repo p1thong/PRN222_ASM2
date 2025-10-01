@@ -1,0 +1,81 @@
+@model ASM1.Repository.Models.Order
+
+@{
+    ViewData["Title"] = "Create Order";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Create New Order</h3>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="DealerId" class="form-label">Dealer</label>
+                                    <select asp-for="DealerId" class="form-select" asp-items="ViewBag.Dealers">
+                                        <option value="">-- Select Dealer --</option>
+                                    </select>
+                                    <span asp-validation-for="DealerId" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="CustomerId" class="form-label">Customer</label>
+                                    <select asp-for="CustomerId" class="form-select" asp-items="ViewBag.Customers">
+                                        <option value="">-- Select Customer --</option>
+                                    </select>
+                                    <span asp-validation-for="CustomerId" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="VariantId" class="form-label">Vehicle Variant</label>
+                            <select asp-for="VariantId" class="form-select" asp-items="ViewBag.Variants">
+                                <option value="">-- Select Vehicle Variant --</option>
+                            </select>
+                            <span asp-validation-for="VariantId" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Status" class="form-label">Status</label>
+                            <select asp-for="Status" class="form-select">
+                                <option value="Pending">Pending</option>
+                                <option value="Confirmed">Confirmed</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                            <span asp-validation-for="Status" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="OrderDate" class="form-label">Order Date</label>
+                            <input asp-for="OrderDate" class="form-control" type="date" />
+                            <span asp-validation-for="OrderDate" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Create Order
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to List
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

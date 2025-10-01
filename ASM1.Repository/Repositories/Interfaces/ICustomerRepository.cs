@@ -8,5 +8,8 @@ namespace ASM1.Repository.Repositories.Interfaces
 		Task<IEnumerable<Customer>> GetAllWithDealerAsync();
 		Task<Customer?> GetByIdWithDealerAsync(int id);
 		Task<bool> IsNewCustomerAsync(int customerId);
+		IEnumerable<Customer> GetAllCustomers();
+		void AddCustomer(Customer customer);
+		void UpdateCustomer(Customer customer);
 	}
 }

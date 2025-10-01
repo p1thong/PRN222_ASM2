@@ -50,5 +50,33 @@ namespace ASM1.Repository.Repositories
 				.CountAsync();
 			return orderCount == 0;
 		}
+
+		/// <summary>
+		/// Lấy tất cả customers (đồng bộ)
+		/// </summary>
+		public IEnumerable<Customer> GetAllCustomers()
+		{
+			return _context.Set<Customer>()
+				.Include(c => c.Dealer)
+				.ToList();
+		}
+
+		/// <summary>
+		/// Thêm customer mới
+		/// </summary>
+		public void AddCustomer(Customer customer)
+		{
+			_context.Set<Customer>().Add(customer);
+			_context.SaveChanges();
+		}
+
+		/// <summary>
+		/// Cập nhật customer
+		/// </summary>
+		public void UpdateCustomer(Customer customer)
+		{
+			_context.Set<Customer>().Update(customer);
+			_context.SaveChanges();
+		}
 	}
 }

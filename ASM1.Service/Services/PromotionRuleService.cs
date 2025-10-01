@@ -64,10 +64,10 @@ namespace ASM1.Service.Services
             return result;
         }
 
-        public async Task<List<PromotionRuleViewModel>> GetActivePromotionRulesAsync()
+        public Task<List<PromotionRuleViewModel>> GetActivePromotionRulesAsync()
         {
             // This would typically come from database, for now we'll use hardcoded rules
-            return GetHardcodedPromotionRules().Where(r => r.IsActive && r.ValidUntil >= DateTime.Now).ToList();
+            return Task.FromResult(GetHardcodedPromotionRules().Where(r => r.IsActive && r.ValidUntil >= DateTime.Now).ToList());
         }
 
         public async Task<List<ApplicablePromotionViewModel>> GetPromotionsForVehicleAsync(int variantId, decimal basePrice)
@@ -80,7 +80,7 @@ namespace ASM1.Service.Services
 
             foreach (var rule in promotionRules.Where(r => r.IsActive && r.ValidUntil >= DateTime.Now))
             {
-                var promotion = await EvaluatePromotionForVehicle(rule, variant, basePrice);
+                var promotion = EvaluatePromotionForVehicle(rule, variant, basePrice);
                 if (promotion != null)
                 {
                     applicablePromotions.Add(promotion);
@@ -100,7 +100,7 @@ namespace ASM1.Service.Services
 
             foreach (var rule in promotionRules.Where(r => r.IsActive && r.ValidUntil >= DateTime.Now))
             {
-                var promotion = await EvaluatePromotionForCustomer(rule, customer, basePrice);
+                var promotion = EvaluatePromotionForCustomer(rule, customer, basePrice);
                 if (promotion != null)
                 {
                     applicablePromotions.Add(promotion);
@@ -110,7 +110,7 @@ namespace ASM1.Service.Services
             return applicablePromotions;
         }
 
-        public async Task<List<ApplicablePromotionViewModel>> GetSeasonalPromotionsAsync(decimal basePrice = 0)
+        public Task<List<ApplicablePromotionViewModel>> GetSeasonalPromotionsAsync(decimal basePrice = 0)
         {
             var applicablePromotions = new List<ApplicablePromotionViewModel>();
             var promotionRules = GetHardcodedPromotionRules();
@@ -135,10 +135,10 @@ namespace ASM1.Service.Services
                 });
             }
 
-            return applicablePromotions;
+            return Task.FromResult(applicablePromotions);
         }
 
-        private Task<ApplicablePromotionViewModel?> EvaluatePromotionForVehicle(PromotionRuleViewModel rule, dynamic variant, decimal basePrice)
+        private ApplicablePromotionViewModel? EvaluatePromotionForVehicle(PromotionRuleViewModel rule, dynamic variant, decimal basePrice)
         {
             // Calculate percentage discount for all promotion types
             var discountAmount = basePrice * (rule.DiscountValue / 100);
@@ -150,7 +150,7 @@ namespace ASM1.Service.Services
             // Check if this is a general percentage promotion
             if (rule.PromotionType == "PERCENTAGE")
             {
-                return Task.FromResult<ApplicablePromotionViewModel?>(new ApplicablePromotionViewModel
+                return new ApplicablePromotionViewModel
                 {
                     RuleId = rule.RuleId,
                     RuleName = rule.RuleName,
@@ -160,7 +160,7 @@ namespace ASM1.Service.Services
                     OriginalDiscountValue = rule.DiscountValue,
                     ApplyReason = $"Giảm {rule.DiscountValue}% trên tổng giá",
                     IsAutoApplied = true
-                });
+                };
             }
 
             // Check manufacturer-specific promotions (but still use percentage)
@@ -168,7 +168,7 @@ namespace ASM1.Service.Services
             {
                 if (variant.VehicleModel.ManufacturerId == rule.ManufacturerId.Value)
                 {
-                    return Task.FromResult<ApplicablePromotionViewModel?>(new ApplicablePromotionViewModel
+                    return new ApplicablePromotionViewModel
                     {
                         RuleId = rule.RuleId,
                         RuleName = rule.RuleName,
@@ -178,7 +178,7 @@ namespace ASM1.Service.Services
                         OriginalDiscountValue = rule.DiscountValue,
                         ApplyReason = $"Giảm {rule.DiscountValue}% cho hãng {rule.ManufacturerName}",
                         IsAutoApplied = true
-                    });
+                    };
                 }
             }
 
@@ -187,7 +187,7 @@ namespace ASM1.Service.Services
             {
                 if (variant.VehicleModelId == rule.VehicleModelId.Value)
                 {
-                    return Task.FromResult<ApplicablePromotionViewModel?>(new ApplicablePromotionViewModel
+                    return new ApplicablePromotionViewModel
                     {
                         RuleId = rule.RuleId,
                         RuleName = rule.RuleName,
@@ -197,14 +197,14 @@ namespace ASM1.Service.Services
                         OriginalDiscountValue = rule.DiscountValue,
                         ApplyReason = $"Giảm {rule.DiscountValue}% cho model {rule.VehicleModelName}",
                         IsAutoApplied = true
-                    });
+                    };
                 }
             }
 
-            return Task.FromResult<ApplicablePromotionViewModel?>(null);
+            return null;
         }
 
-        private Task<ApplicablePromotionViewModel?> EvaluatePromotionForCustomer(PromotionRuleViewModel rule, dynamic customer, decimal basePrice)
+        private ApplicablePromotionViewModel? EvaluatePromotionForCustomer(PromotionRuleViewModel rule, dynamic customer, decimal basePrice)
         {
             // Check if customer is new (this is a simplified check, in real scenario you would check registration date)
             if (rule.CustomerType == "NEW")
@@ -215,7 +215,7 @@ namespace ASM1.Service.Services
                 // Since we can't easily check customer creation date without modifying database,
                 // we'll assume all customers are eligible for new customer promotion
                 // In a real scenario, you would check if customer was created within last 30 days
-                return Task.FromResult<ApplicablePromotionViewModel?>(new ApplicablePromotionViewModel
+                return new ApplicablePromotionViewModel
                 {
                     RuleId = rule.RuleId,
                     RuleName = rule.RuleName,
@@ -225,10 +225,10 @@ namespace ASM1.Service.Services
                     OriginalDiscountValue = rule.DiscountValue,
                     ApplyReason = $"Giảm {rule.DiscountValue}% cho khách hàng mới",
                     IsAutoApplied = true
-                });
+                };
             }
 
-            return Task.FromResult<ApplicablePromotionViewModel?>(null);
+            return null;
         }
 
         private List<PromotionRuleViewModel> GetHardcodedPromotionRules()

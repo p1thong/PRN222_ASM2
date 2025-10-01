@@ -43,74 +43,32 @@ namespace ASM1.Service.Services
             var quotation = await _unitOfWork.Quotations.GetQuotationWithDetailsAsync(id);
             if (quotation == null) return null;
 
-            // Debug: Check what we got
-            Console.WriteLine($"Quotation ID: {quotation.QuotationId}");
-            Console.WriteLine($"Customer is null: {quotation.Customer == null}");
-            Console.WriteLine($"Dealer is null: {quotation.Dealer == null}");
-            Console.WriteLine($"Variant is null: {quotation.Variant == null}");
-
             var variant = quotation.Variant;
             var basePrice = variant?.Price ?? 0;
             
-            // For existing quotations, we'll extract pricing components from the stored Price
-            // This is a simplified approach - in reality, you might want to store these components separately
+            // Use the stored price from database as the final price
             var finalPrice = quotation.Price;
             
-            // For demonstration, assume some default breakdown
-            var estimatedDiscount = 0m; // No default discount
-            var estimatedFees = basePrice * 0.02m; // Assume 2% additional fees
-            var estimatedTaxRate = 0.1m; // 10% tax
-            var estimatedTax = (basePrice - estimatedDiscount + estimatedFees) * estimatedTaxRate;
+            // For simplicity, we'll show the stored price as-is without breaking it down
+            // since we don't store the breakdown components separately
             
-            // Try to determine actual discount by checking promotion service
-            var discountDescription = "";
-            var feesDescription = "";
-            
-            try
-            {
-                var promotionRequest = new PromotionCalculationRequest
-                {
-                    VariantId = quotation.VariantId,
-                    CustomerId = quotation.CustomerId,
-                    BasePrice = basePrice,
-                    QuotationDate = quotation.CreatedAt ?? DateTime.Now
-                };
-                
-                var promotionResult = await _promotionRuleService.CalculateApplicablePromotionsAsync(promotionRequest);
-                if (promotionResult.TotalDiscount > 0)
-                {
-                    estimatedDiscount = promotionResult.TotalDiscount;
-                    discountDescription = promotionResult.DiscountDescription;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error calculating promotion: {ex.Message}");
-            }
-            
-            // Set fees description only if there are actual fees
-            if (estimatedFees > 0)
-            {
-                feesDescription = "Phí đăng ký, bảo hiểm";
-            }
-
             var quotationDetail = new QuotationDetailViewModel
             {
                 QuotationId = quotation.QuotationId,
                 CustomerName = quotation.Customer?.FullName ?? "Unknown Customer",
                 CustomerEmail = quotation.Customer?.Email ?? "No Email",
-                CustomerPhone = quotation.Customer?.Phone ?? "No Phone",
+                CustomerPhone = quotation.Customer?.Phone,
                 VehicleBrand = quotation.Variant?.VehicleModel?.Manufacturer?.Name ?? "Unknown Brand",
                 VehicleModel = quotation.Variant?.VehicleModel?.Name ?? "Unknown Model",
                 VehicleVersion = quotation.Variant?.Version ?? "Unknown Version",
-                VehicleColor = quotation.Variant?.Color ?? "Unknown Color",
+                VehicleColor = quotation.Variant?.Color,
                 VehicleYear = quotation.Variant?.ProductYear,
-                VehicleBasePrice = basePrice,
-                DiscountAmount = estimatedDiscount,
-                AdditionalFees = estimatedFees,
-                TaxRate = estimatedTaxRate,
-                DiscountDescription = discountDescription,
-                FeesDescription = feesDescription,
+                VehicleBasePrice = finalPrice, // Use final price as base price for display
+                DiscountAmount = 0, // No breakdown available
+                AdditionalFees = 0, // No breakdown available  
+                TaxRate = 0, // No breakdown available
+                DiscountDescription = "",
+                FeesDescription = "",
                 CreatedAt = quotation.CreatedAt,
                 Status = quotation.Status ?? "Unknown",
                 DealerName = quotation.Dealer?.FullName ?? "Unknown Dealer"

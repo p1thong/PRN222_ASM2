@@ -61,7 +61,7 @@ namespace ASM1.Service.Models
         public decimal AdditionalFees { get; set; }
         public decimal TaxRate { get; set; } = 0.1m;
         public decimal TaxAmount => (VehicleBasePrice - DiscountAmount + AdditionalFees) * TaxRate;
-        public decimal FinalPrice => VehicleBasePrice - DiscountAmount + AdditionalFees + TaxAmount;
+        public decimal FinalPrice => VehicleBasePrice; // Use the stored price directly
         public string? DiscountDescription { get; set; }
         public string? FeesDescription { get; set; }
         public DateTime? CreatedAt { get; set; }

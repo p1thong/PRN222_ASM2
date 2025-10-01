@@ -17,67 +17,137 @@ namespace ASM1.Service.Services
             _mapper = mapper;
         }
 
-        public async Task<ServiceResponse<IEnumerable<Manufacturer>>> GetAllAsync()
+        public async Task<ServiceResponse<IEnumerable<ManufacturerViewModel>>> GetAllAsync()
         {
             try
             {
-                var manufacturers = await _unitOfWork.Manufacturers.GetAllAsync();
-                return ServiceResponse<IEnumerable<Manufacturer>>.SuccessResponse(manufacturers);
+                var manufacturers = await _unitOfWork.Manufacturers.GetManufacturersWithModelsAsync();
+                var manufacturerVMs = _mapper.Map<IEnumerable<ManufacturerViewModel>>(manufacturers);
+                return new ServiceResponse<IEnumerable<ManufacturerViewModel>>
+                {
+                    Success = true,
+                    Data = manufacturerVMs
+                };
             }
             catch (Exception ex)
             {
-                return ServiceResponse<IEnumerable<Manufacturer>>.ErrorResponse("Error getting manufacturers", ex.Message);
+                return new ServiceResponse<IEnumerable<ManufacturerViewModel>>
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
             }
         }
 
-        public async Task<ServiceResponse<Manufacturer?>> GetByIdAsync(int id)
+        public async Task<ServiceResponse<ManufacturerViewModel?>> GetByIdAsync(int id)
         {
             try
             {
                 var manufacturer = await _unitOfWork.Manufacturers.GetByIdAsync(id);
                 if (manufacturer == null)
                 {
-                    return ServiceResponse<Manufacturer?>.ErrorResponse("Manufacturer not found");
+                    return new ServiceResponse<ManufacturerViewModel?>
+                    {
+                        Success = false,
+                        Message = "Manufacturer not found"
+                    };
                 }
-                return ServiceResponse<Manufacturer?>.SuccessResponse(manufacturer);
+
+                var manufacturerVM = _mapper.Map<ManufacturerViewModel>(manufacturer);
+                return new ServiceResponse<ManufacturerViewModel?>
+                {
+                    Success = true,
+                    Data = manufacturerVM
+                };
             }
             catch (Exception ex)
             {
-                return ServiceResponse<Manufacturer?>.ErrorResponse("Error getting manufacturer", ex.Message);
+                return new ServiceResponse<ManufacturerViewModel?>
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
             }
         }
 
-        public async Task<ServiceResponse<bool>> AddAsync(Manufacturer manufacturer)
+        public async Task<ServiceResponse<ManufacturerDetailViewModel?>> GetDetailByIdAsync(int id)
         {
             try
             {
+                var manufacturers = await _unitOfWork.Manufacturers.GetManufacturersWithModelsAsync();
+                var manufacturer = manufacturers.FirstOrDefault(m => m.ManufacturerId == id);
+                
+                if (manufacturer == null)
+                {
+                    return new ServiceResponse<ManufacturerDetailViewModel?>
+                    {
+                        Success = false,
+                        Message = "Manufacturer not found"
+                    };
+                }
+
+                var manufacturerDetailVM = _mapper.Map<ManufacturerDetailViewModel>(manufacturer);
+                return new ServiceResponse<ManufacturerDetailViewModel?>
+                {
+                    Success = true,
+                    Data = manufacturerDetailVM
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResponse<ManufacturerDetailViewModel?>
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
+        }
+
+        public async Task<ServiceResponse<bool>> AddAsync(ManufacturerCreateViewModel manufacturerVM)
+        {
+            try
+            {
+                var manufacturer = _mapper.Map<Manufacturer>(manufacturerVM);
                 await _unitOfWork.Manufacturers.AddAsync(manufacturer);
                 await _unitOfWork.SaveChangesAsync();
-                return ServiceResponse<bool>.SuccessResponse(true, "Manufacturer added successfully");
+
+                return new ServiceResponse<bool>
+                {
+                    Success = true,
+                    Data = true
+                };
             }
             catch (Exception ex)
             {
-                return ServiceResponse<bool>.ErrorResponse("Error adding manufacturer", ex.Message);
+                return new ServiceResponse<bool>
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
             }
         }
 
-        public async Task<ServiceResponse<bool>> UpdateAsync(Manufacturer manufacturer)
+        public async Task<ServiceResponse<bool>> UpdateAsync(ManufacturerViewModel manufacturerVM)
         {
             try
             {
-                var existingManufacturer = await _unitOfWork.Manufacturers.GetByIdAsync(manufacturer.ManufacturerId);
-                if (existingManufacturer == null)
-                {
-                    return ServiceResponse<bool>.ErrorResponse("Manufacturer not found");
-                }
-
+                var manufacturer = _mapper.Map<Manufacturer>(manufacturerVM);
                 await _unitOfWork.Manufacturers.UpdateAsync(manufacturer);
                 await _unitOfWork.SaveChangesAsync();
-                return ServiceResponse<bool>.SuccessResponse(true, "Manufacturer updated successfully");
+
+                return new ServiceResponse<bool>
+                {
+                    Success = true,
+                    Data = true
+                };
             }
             catch (Exception ex)
             {
-                return ServiceResponse<bool>.ErrorResponse("Error updating manufacturer", ex.Message);
+                return new ServiceResponse<bool>
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
             }
         }
 
@@ -85,33 +155,53 @@ namespace ASM1.Service.Services
         {
             try
             {
-                var manufacturer = await _unitOfWork.Manufacturers.GetByIdAsync(id);
-                if (manufacturer == null)
-                {
-                    return ServiceResponse<bool>.ErrorResponse("Manufacturer not found");
-                }
-
                 await _unitOfWork.Manufacturers.DeleteAsync(id);
                 await _unitOfWork.SaveChangesAsync();
-                return ServiceResponse<bool>.SuccessResponse(true, "Manufacturer deleted successfully");
+
+                return new ServiceResponse<bool>
+                {
+                    Success = true,
+                    Data = true
+                };
             }
             catch (Exception ex)
             {
-                return ServiceResponse<bool>.ErrorResponse("Error deleting manufacturer", ex.Message);
+                return new ServiceResponse<bool>
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
             }
         }
 
-        public async Task<ServiceResponse<Manufacturer?>> GetByNameAsync(string name)
+        public async Task<ServiceResponse<ManufacturerViewModel?>> GetByNameAsync(string name)
         {
             try
             {
-                var manufacturers = await _unitOfWork.Manufacturers.GetAllAsync();
-                var manufacturer = manufacturers.FirstOrDefault(m => m.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-                return ServiceResponse<Manufacturer?>.SuccessResponse(manufacturer);
+                var manufacturer = await _unitOfWork.Manufacturers.GetByNameAsync(name);
+                if (manufacturer == null)
+                {
+                    return new ServiceResponse<ManufacturerViewModel?>
+                    {
+                        Success = false,
+                        Message = "Manufacturer not found"
+                    };
+                }
+
+                var manufacturerVM = _mapper.Map<ManufacturerViewModel>(manufacturer);
+                return new ServiceResponse<ManufacturerViewModel?>
+                {
+                    Success = true,
+                    Data = manufacturerVM
+                };
             }
             catch (Exception ex)
             {
-                return ServiceResponse<Manufacturer?>.ErrorResponse("Error getting manufacturer by name", ex.Message);
+                return new ServiceResponse<ManufacturerViewModel?>
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
             }
         }
     }

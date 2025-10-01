@@ -1,5 +1,6 @@
 using ASM1.Repository.Models;
 using ASM1.Repository.Repositories;
+using ASM1.Service.Models;
 using ASM1.Service.Services.Interfaces;
 using AutoMapper;
 
@@ -16,24 +17,29 @@ namespace ASM1.Service.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<Payment>> GetAllAsync()
+        public async Task<IEnumerable<PaymentViewModel>> GetAllAsync()
         {
-            return await _unitOfWork.Payments.GetAllAsync();
+            var payments = await _unitOfWork.Payments.GetAllAsync();
+            return _mapper.Map<IEnumerable<PaymentViewModel>>(payments);
         }
 
-        public async Task<Payment?> GetByIdAsync(int id)
+        public async Task<PaymentViewModel?> GetByIdAsync(int id)
         {
-            return await _unitOfWork.Payments.GetByIdAsync(id);
+            var payment = await _unitOfWork.Payments.GetByIdAsync(id);
+            return payment == null ? null : _mapper.Map<PaymentViewModel>(payment);
         }
 
-        public async Task AddAsync(Payment payment)
+        public async Task AddAsync(PaymentCreateViewModel paymentVm)
         {
+            var payment = _mapper.Map<Payment>(paymentVm);
+            payment.PaymentId = await _unitOfWork.Payments.GenerateUniquePaymentIdAsync();
             await _unitOfWork.Payments.AddAsync(payment);
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(Payment payment)
+        public async Task UpdateAsync(PaymentViewModel paymentVm)
         {
+            var payment = _mapper.Map<Payment>(paymentVm);
             await _unitOfWork.Payments.UpdateAsync(payment);
             await _unitOfWork.SaveChangesAsync();
         }

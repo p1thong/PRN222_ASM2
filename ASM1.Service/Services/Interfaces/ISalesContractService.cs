@@ -1,14 +1,13 @@
-using ASM1.Repository.Models;
 using ASM1.Service.Models;
 
 namespace ASM1.Service.Services.Interfaces
 {
     public interface ISalesContractService
     {
-        Task<ServiceResponse<IEnumerable<SalesContract>>> GetAllAsync();
-        Task<ServiceResponse<SalesContract?>> GetByIdAsync(int id);
-        Task<ServiceResponse> AddAsync(SalesContract contract);
-        Task<ServiceResponse> UpdateAsync(SalesContract contract);
-        Task<ServiceResponse> DeleteAsync(int id);
+        Task<IEnumerable<SalesContractViewModel>> GetAllAsync();
+        Task<SalesContractViewModel?> GetByIdAsync(int id);
+        Task AddAsync(SalesContractCreateViewModel contract);
+        Task UpdateAsync(SalesContractViewModel contract);
+        Task DeleteAsync(int id);
     }
 }

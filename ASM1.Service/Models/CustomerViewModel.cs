@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace ASM1.WebMVC.Models
+namespace ASM1.Service.Models
 {
     public class CustomerViewModel
     {

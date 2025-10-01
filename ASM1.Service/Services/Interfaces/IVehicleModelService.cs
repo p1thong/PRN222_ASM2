@@ -1,15 +1,15 @@
-using ASM1.Repository.Models;
 using ASM1.Service.Models;
 
 namespace ASM1.Service.Services.Interfaces
 {
     public interface IVehicleModelService
     {
-        Task<ServiceResponse<IEnumerable<VehicleModel>>> GetAllAsync();
-        Task<ServiceResponse<VehicleModel?>> GetByIdAsync(int id);
-        Task<ServiceResponse<bool>> AddAsync(VehicleModel model);
-        Task<ServiceResponse<bool>> UpdateAsync(VehicleModel model);
+        Task<ServiceResponse<IEnumerable<VehicleModelViewModel>>> GetAllAsync();
+        Task<ServiceResponse<VehicleModelViewModel?>> GetByIdAsync(int id);
+        Task<ServiceResponse<VehicleModelDetailViewModel?>> GetDetailByIdAsync(int id);
+        Task<ServiceResponse<bool>> AddAsync(VehicleModelCreateViewModel model);
+        Task<ServiceResponse<bool>> UpdateAsync(VehicleModelViewModel model);
         Task<ServiceResponse<bool>> DeleteAsync(int id);
-        Task<ServiceResponse<IEnumerable<VehicleModel>>> GetByManufacturerAsync(int manufacturerId);
+        Task<ServiceResponse<IEnumerable<VehicleModelViewModel>>> GetByManufacturerAsync(int manufacturerId);
     }
 }

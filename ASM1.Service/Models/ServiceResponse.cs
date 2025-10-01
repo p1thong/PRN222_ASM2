@@ -41,6 +41,7 @@ namespace ASM1.Service.Models
         }
     }
 
+    // Response không có data
     public class ServiceResponse
     {
         public bool Success { get; set; }

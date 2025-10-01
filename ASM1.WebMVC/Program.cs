@@ -50,7 +50,7 @@ builder.Services.AddScoped<IVehicleVariantService, VehicleVariantService>();
 builder.Services.AddScoped<IPromotionRuleService, PromotionRuleService>();
 
 //add AutoMapper - cần import từ assembly chứa MappingProfile
-builder.Services.AddAutoMapper(typeof(ASM1.WebMVC.Models.MappingProfile));
+builder.Services.AddAutoMapper(typeof(ASM1.Service.Models.MappingProfile));
 
 
 var app = builder.Build();

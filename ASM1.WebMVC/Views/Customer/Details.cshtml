@@ -1,4 +1,4 @@
-@model ASM1.WebMVC.Models.CustomerViewModel
+@model ASM1.Service.Models.CustomerViewModel
 @{
     ViewData["Title"] = "Customer Details";
 }
@@ -106,7 +106,7 @@
 
 <!-- Quotations Section -->
 @{
-    var quotations = ViewBag.Quotations as IEnumerable<ASM1.WebMVC.Models.QuotationViewModel>;
+    var quotations = ViewBag.Quotations as IEnumerable<ASM1.Service.Models.QuotationViewModel>;
 }
 
 @if (quotations != null && quotations.Any())

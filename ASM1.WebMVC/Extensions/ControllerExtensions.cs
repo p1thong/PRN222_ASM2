@@ -1,4 +1,4 @@
-using ASM1.WebMVC.Models;
+using ASM1.Service.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ASM1.WebMVC.Extensions

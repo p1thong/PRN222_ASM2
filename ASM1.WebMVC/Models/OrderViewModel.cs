@@ -1,4 +1,4 @@
-namespace ASM1.Service.Models
+namespace ASM1.WebMVC.Models
 {
     public class OrderViewModel
     {
@@ -8,6 +8,13 @@ namespace ASM1.Service.Models
         public int VariantId { get; set; }
         public string Status { get; set; } = string.Empty;
         public DateOnly? OrderDate { get; set; }
+        public decimal? TotalAmount { get; set; }
+        public string? Notes { get; set; }
+        
+        // Additional properties for display
+        public string? CustomerName { get; set; }
+        public string? DealerName { get; set; }
+        public string? VehicleInfo { get; set; }
     }
 
     public class OrderCreateViewModel
@@ -17,5 +24,7 @@ namespace ASM1.Service.Models
         public int VariantId { get; set; }
         public string Status { get; set; } = string.Empty;
         public DateOnly? OrderDate { get; set; }
+        public decimal? TotalAmount { get; set; }
+        public string? Notes { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-@model ASM1.Service.Models.QuotationDetailViewModel
+@model ASM1.WebMVC.Models.QuotationDetailViewModel
 @{
     ViewData["Title"] = "Chi tiết báo giá #" + Model.QuotationId;
 }
@@ -217,10 +217,15 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Báo giá đã được duyệt thành công!');
-                    location.reload();
+                    alert(data.message || 'Báo giá đã được duyệt thành công!');
+                    if (data.redirectUrl) {
+                        // Redirect to create order form
+                        window.location.href = data.redirectUrl;
+                    } else {
+                        location.reload();
+                    }
                 } else {
-                    alert('Có lỗi xảy ra khi duyệt báo giá');
+                    alert('Có lỗi xảy ra khi duyệt báo giá: ' + (data.message || 'Không xác định'));
                 }
             })
             .catch(error => {

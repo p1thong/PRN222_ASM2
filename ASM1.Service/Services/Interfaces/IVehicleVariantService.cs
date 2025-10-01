@@ -1,16 +1,15 @@
-using ASM1.Service.Models;
+using ASM1.Repository.Models;
 
 namespace ASM1.Service.Services.Interfaces
 {
     public interface IVehicleVariantService
     {
-        Task<ServiceResponse<IEnumerable<VehicleVariantViewModel>>> GetAllAsync();
-        Task<ServiceResponse<VehicleVariantViewModel?>> GetByIdAsync(int id);
-        Task<ServiceResponse<VehicleVariantDetailViewModel?>> GetDetailByIdAsync(int id);
-        Task<ServiceResponse<bool>> AddAsync(VehicleVariantCreateViewModel variant);
-        Task<ServiceResponse<bool>> UpdateAsync(VehicleVariantViewModel variant);
-        Task<ServiceResponse<bool>> DeleteAsync(int id);
-        Task<ServiceResponse<IEnumerable<VehicleVariantViewModel>>> GetByModelAsync(int modelId);
-        Task<ServiceResponse<IEnumerable<VehicleVariantViewModel>>> GetByManufacturerAsync(int manufacturerId);
+        Task<IEnumerable<VehicleVariant>> GetAllAsync();
+        Task<VehicleVariant?> GetByIdAsync(int id);
+        Task AddAsync(VehicleVariant variant);
+        Task UpdateAsync(VehicleVariant variant);
+        Task DeleteAsync(int id);
+        Task<IEnumerable<VehicleVariant>> GetByModelAsync(int modelId);
+        Task<IEnumerable<VehicleVariant>> GetByManufacturerAsync(int manufacturerId);
     }
 }

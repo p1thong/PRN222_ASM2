@@ -1,0 +1,57 @@
+@{
+    var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
+}
+
+<div class="col-md-3">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h6 class="mb-0">
+                <i class="bi bi-compass"></i>
+                Sales Navigation
+            </h6>
+        </div>
+        <div class="list-group list-group-flush">
+            <a href="@Url.Action("Index", "Quotation")" 
+               class="list-group-item list-group-item-action @(currentController == "Quotation" ? "active" : "")">
+                <i class="bi bi-file-text"></i>
+                <strong>Quotations</strong>
+                <small class="d-block text-muted">Manage price quotes</small>
+                @if (currentController == "Quotation")
+                {
+                    <span class="badge bg-primary ms-auto">Current</span>
+                }
+            </a>
+            <a href="@Url.Action("Index", "Order")" 
+               class="list-group-item list-group-item-action @(currentController == "Order" ? "active" : "")">
+                <i class="bi bi-cart-check"></i>
+                <strong>Orders</strong>
+                <small class="d-block text-muted">Track customer orders</small>
+                @if (currentController == "Order")
+                {
+                    <span class="badge bg-primary ms-auto">Current</span>
+                }
+            </a>
+            <a href="@Url.Action("Index", "SalesContract")" 
+               class="list-group-item list-group-item-action @(currentController == "SalesContract" ? "active" : "")">
+                <i class="bi bi-file-earmark-text"></i>
+                <strong>Sales Contracts</strong>
+                <small class="d-block text-muted">Manage contracts</small>
+                @if (currentController == "SalesContract")
+                {
+                    <span class="badge bg-primary ms-auto">Current</span>
+                }
+            </a>
+            <a href="@Url.Action("Index", "Payment")" 
+               class="list-group-item list-group-item-action @(currentController == "Payment" ? "active" : "")">
+                <i class="bi bi-credit-card"></i>
+                <strong>Payments</strong>
+                <small class="d-block text-muted">Manage payments</small>
+                @if (currentController == "Payment")
+                {
+                    <span class="badge bg-primary ms-auto">Current</span>
+                }
+            </a>
+        </div>
+    </div>
+</div>

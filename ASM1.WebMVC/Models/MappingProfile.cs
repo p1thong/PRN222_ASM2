@@ -1,7 +1,7 @@
 using AutoMapper;
 using ASM1.Repository.Models;
 
-namespace ASM1.Service.Models
+namespace ASM1.WebMVC.Models
 {
     public class MappingProfile : Profile
     {
@@ -21,7 +21,12 @@ namespace ASM1.Service.Models
             CreateMap<QuotationCreateViewModel, Quotation>()
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.FinalPrice));
 
-            CreateMap<Order, OrderViewModel>().ReverseMap();
+            CreateMap<Order, OrderViewModel>()
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer != null ? src.Customer.FullName : ""))
+                .ForMember(dest => dest.DealerName, opt => opt.MapFrom(src => src.Dealer != null ? src.Dealer.FullName : ""))
+                .ForMember(dest => dest.VehicleInfo, opt => opt.MapFrom(src => src.Variant != null && src.Variant.VehicleModel != null ? 
+                    $"{src.Variant.VehicleModel.Manufacturer.Name} {src.Variant.VehicleModel.Name} {src.Variant.Version}" : ""))
+                .ReverseMap();
             CreateMap<OrderCreateViewModel, Order>();
 
             CreateMap<SalesContract, SalesContractViewModel>().ReverseMap();

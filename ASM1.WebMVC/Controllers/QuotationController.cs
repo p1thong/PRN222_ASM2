@@ -1,6 +1,8 @@
 using ASM1.Service.Services.Interfaces;
-using ASM1.Service.Models;
 using ASM1.WebMVC.Extensions;
+using ASM1.WebMVC.Models;
+using ASM1.Repository.Models;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ASM1.WebMVC.Controllers
@@ -10,18 +12,29 @@ namespace ASM1.WebMVC.Controllers
         private readonly IQuotationService _quotationService;
         private readonly ICustomerService _customerService;
         private readonly IVehicleVariantService _vehicleVariantService;
+        private readonly IMapper _mapper;
 
-        public QuotationController(IQuotationService quotationService, ICustomerService customerService, IVehicleVariantService vehicleVariantService)
+        public QuotationController(IQuotationService quotationService, ICustomerService customerService, IVehicleVariantService vehicleVariantService, IMapper mapper)
         {
             _quotationService = quotationService;
             _customerService = customerService;
             _vehicleVariantService = vehicleVariantService;
+            _mapper = mapper;
         }
 
         public async Task<IActionResult> Index()
         {
-            var response = await _quotationService.GetAllAsync();
-            return View(response);
+            try
+            {
+                var quotations = await _quotationService.GetAllAsync();
+                var viewModels = _mapper.Map<List<QuotationViewModel>>(quotations);
+                return View(viewModels);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+                return View(new List<QuotationViewModel>());
+            }
         }
 
         [HttpGet]
@@ -33,19 +46,22 @@ namespace ASM1.WebMVC.Controllers
                 return RedirectToAction("Index", "Customer");
             }
 
-            // Get customer details to display in quotation form
-            var customerResponse = await _customerService.GetByIdAsync(customerId);
-            if (customerResponse == null || !customerResponse.Success)
+            try
             {
-                TempData["Error"] = "Customer not found.";
-                return RedirectToAction("Index", "Customer");
-            }
+                // Get customer details to display in quotation form
+                var customer = await _customerService.GetByIdAsync(customerId);
+                if (customer == null)
+                {
+                    TempData["Error"] = "Customer not found.";
+                    return RedirectToAction("Index", "Customer");
+                }
 
-            // Get vehicle variants for dropdown
-            var variantsResponse = await _vehicleVariantService.GetAllAsync();
-            ViewBag.VehicleVariants = variantsResponse.Success ? variantsResponse.Data : new List<VehicleVariantViewModel>();
+                // Get vehicle variants for dropdown
+                var variants = await _vehicleVariantService.GetAllAsync();
+                ViewBag.VehicleVariants = _mapper.Map<List<VehicleVariantViewModel>>(variants);
 
-            ViewBag.Customer = customerResponse.Data;
+                ViewBag.Customer = customer;
+            
             ViewBag.CustomerId = customerId;
             ViewBag.DealerId = GetDealerIdFromSession();
 
@@ -59,6 +75,12 @@ namespace ASM1.WebMVC.Controllers
             };
 
             return View(model);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction("Index", "Customer");
+            }
         }
 
         [HttpPost]
@@ -114,9 +136,9 @@ namespace ASM1.WebMVC.Controllers
                 if (model.BasePrice <= 0)
                 {
                     var variant = await _vehicleVariantService.GetByIdAsync(model.VariantId);
-                    if (variant.Success && variant.Data?.Price.HasValue == true)
+                    if (variant != null && variant.Price.HasValue)
                     {
-                        model.BasePrice = variant.Data.Price.Value;
+                        model.BasePrice = variant.Price.Value;
                     }
                     else
                     {
@@ -132,27 +154,17 @@ namespace ASM1.WebMVC.Controllers
                 if (model.IsEdit && model.QuotationId.HasValue)
                 {
                     // Update existing quotation
-                    var quotationToUpdate = new QuotationViewModel
-                    {
-                        QuotationId = model.QuotationId.Value,
-                        CustomerId = model.CustomerId,
-                        VariantId = model.VariantId,
-                        DealerId = model.DealerId,
-                        Price = model.FinalPrice, // Use auto-calculated final price from model
-                        CreatedAt = model.CreatedAt,
-                        Status = model.Status
-                    };
-
                     try
                     {
                         // Debug information
                         Console.WriteLine($"=== UPDATING QUOTATION ===");
-                        Console.WriteLine($"Updating quotation ID: {quotationToUpdate.QuotationId}");
-                        Console.WriteLine($"Customer ID: {quotationToUpdate.CustomerId}");
-                        Console.WriteLine($"Variant ID: {quotationToUpdate.VariantId}");
-                        Console.WriteLine($"Dealer ID: {quotationToUpdate.DealerId}");
+                        Console.WriteLine($"Updating quotation ID: {model.QuotationId}");
+                        Console.WriteLine($"Customer ID: {model.CustomerId}");
+                        Console.WriteLine($"Variant ID: {model.VariantId}");
+                        Console.WriteLine($"Dealer ID: {model.DealerId}");
                         Console.WriteLine($"Final Price: {model.FinalPrice}");
                         
+                        var quotationToUpdate = _mapper.Map<Quotation>(model);
                         await _quotationService.UpdateAsync(quotationToUpdate);
                         TempData["Success"] = "Báo giá đã được cập nhật thành công!";
                         return RedirectToAction("Details", new { id = model.QuotationId.Value });
@@ -179,7 +191,8 @@ namespace ASM1.WebMVC.Controllers
                     
                     try
                     {
-                        await _quotationService.AddAsync(model);
+                        var quotation = _mapper.Map<Quotation>(model);
+                        await _quotationService.AddAsync(quotation);
                         TempData["Success"] = "Báo giá đã được tạo thành công!";
                         return RedirectToAction("Index", "Customer");
                     }
@@ -203,30 +216,44 @@ namespace ASM1.WebMVC.Controllers
 
         private async Task LoadViewDataForCreate(int customerId)
         {
-            // Load customer data
-            var customerResponse = await _customerService.GetByIdAsync(customerId);
-            if (customerResponse != null && customerResponse.Success)
+            try
             {
-                ViewBag.Customer = customerResponse.Data;
-            }
+                // Load customer data
+                var customer = await _customerService.GetByIdAsync(customerId);
+                ViewBag.Customer = customer;
 
-            // Load vehicle variants
-            var variantsResponse = await _vehicleVariantService.GetAllAsync();
-            ViewBag.VehicleVariants = variantsResponse.Success ? variantsResponse.Data : new List<VehicleVariantViewModel>();
+                // Load vehicle variants
+                var variants = await _vehicleVariantService.GetAllAsync();
+                ViewBag.VehicleVariants = _mapper.Map<List<VehicleVariantViewModel>>(variants);
+            }
+            catch (Exception)
+            {
+                ViewBag.Customer = null;
+                ViewBag.VehicleVariants = new List<VehicleVariantViewModel>();
+            }
 
             ViewBag.CustomerId = customerId;
             ViewBag.DealerId = GetDealerIdFromSession();
         }        [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
-            var quotation = await _quotationService.GetDetailsByIdAsync(id);
-            if (quotation == null)
+            try
             {
-                TempData["Error"] = "Quotation not found.";
+                var quotation = await _quotationService.GetByIdAsync(id);
+                if (quotation == null)
+                {
+                    TempData["Error"] = "Quotation not found.";
+                    return RedirectToAction("Index");
+                }
+
+                var viewModel = _mapper.Map<QuotationDetailViewModel>(quotation);
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
                 return RedirectToAction("Index");
             }
-
-            return View(quotation);
         }
 
         [HttpPost]
@@ -235,8 +262,27 @@ namespace ASM1.WebMVC.Controllers
         {
             try
             {
-                var pricingResult = await _quotationService.CalculatePricingAsync(request);
-                return Json(new { success = true, data = pricingResult });
+                // Simple price calculation since CalculatePricingAsync doesn't exist
+                var variant = await _vehicleVariantService.GetByIdAsync(request.VariantId);
+                if (variant == null)
+                {
+                    return Json(new { success = false, message = "Vehicle variant not found" });
+                }
+
+                var basePrice = variant.Price ?? 0;
+                var taxAmount = (basePrice - request.DiscountAmount + request.AdditionalFees) * request.TaxRate;
+                var finalPrice = basePrice - request.DiscountAmount + request.AdditionalFees + taxAmount;
+
+                var result = new
+                {
+                    BasePrice = basePrice,
+                    DiscountAmount = request.DiscountAmount,
+                    AdditionalFees = request.AdditionalFees,
+                    TaxAmount = taxAmount,
+                    FinalPrice = finalPrice
+                };
+
+                return Json(new { success = true, data = result });
             }
             catch (Exception ex)
             {
@@ -269,8 +315,28 @@ namespace ASM1.WebMVC.Controllers
                     return Json(new { success = false, message = "Variant ID is invalid" });
                 }
 
-                var pricingResult = await _quotationService.CalculatePricingWithPromotionsAsync(variantId, customerId, additionalFees, taxRate);
-                return Json(new { success = true, data = pricingResult });
+                // Simple price calculation with promotions since CalculatePricingWithPromotionsAsync doesn't exist
+                var variant = await _vehicleVariantService.GetByIdAsync(variantId);
+                if (variant == null)
+                {
+                    return Json(new { success = false, message = "Vehicle variant not found" });
+                }
+
+                var basePrice = variant.Price ?? 0;
+                var discountAmount = 0m; // Could add promotion logic here later
+                var taxAmount = (basePrice - discountAmount + additionalFees) * taxRate;
+                var finalPrice = basePrice - discountAmount + additionalFees + taxAmount;
+
+                var result = new
+                {
+                    BasePrice = basePrice,
+                    DiscountAmount = discountAmount,
+                    AdditionalFees = additionalFees,
+                    TaxAmount = taxAmount,
+                    FinalPrice = finalPrice
+                };
+
+                return Json(new { success = true, data = result });
             }
             catch (Exception ex)
             {
@@ -304,6 +370,18 @@ namespace ASM1.WebMVC.Controllers
                 var result = await _quotationService.ApproveAsync(id);
                 if (result)
                 {
+                    // Get quotation details to pass to order creation
+                    var quotation = await _quotationService.GetByIdAsync(id);
+                    if (quotation != null)
+                    {
+                        // Return success with redirect URL to create order
+                        var createOrderUrl = Url.Action("Create", "Order", new { quotationId = id });
+                        return Json(new { 
+                            success = true, 
+                            message = "Báo giá đã được duyệt thành công! Chuyển đến tạo order...",
+                            redirectUrl = createOrderUrl
+                        });
+                    }
                     return Json(new { success = true, message = "Báo giá đã được duyệt thành công!" });
                 }
                 else
@@ -349,34 +427,31 @@ namespace ASM1.WebMVC.Controllers
                 return RedirectToAction("Index");
             }
 
-            // Get vehicle variants for dropdown
-            var variantsResponse = await _vehicleVariantService.GetAllAsync();
-            ViewBag.VehicleVariants = variantsResponse.Success ? variantsResponse.Data : new List<VehicleVariantViewModel>();
-
-            // Get customer info
-            var customerResponse = await _customerService.GetByIdAsync(quotation.CustomerId);
-            ViewBag.Customer = customerResponse?.Data;
-
-            ViewBag.DealerId = GetDealerIdFromSession();
-
-            // Convert QuotationViewModel to QuotationCreateViewModel
-            // Get the vehicle variant to get base price
-            var variantResponse = await _vehicleVariantService.GetByIdAsync(quotation.VariantId);
-            var basePrice = quotation.Price; // Default fallback
-            
-            if (variantResponse != null && variantResponse.Success && variantResponse.Data != null)
+            try
             {
-                basePrice = variantResponse.Data.Price ?? quotation.Price;
-            }
+                // Get vehicle variants for dropdown
+                var variants = await _vehicleVariantService.GetAllAsync();
+                ViewBag.VehicleVariants = _mapper.Map<List<VehicleVariantViewModel>>(variants);
 
-            var editModel = new QuotationCreateViewModel
-            {
-                QuotationId = id, // Set the ID for edit mode
-                CustomerId = quotation.CustomerId,
-                VariantId = quotation.VariantId,
-                DealerId = quotation.DealerId,
-                BasePrice = basePrice, // Use actual base price from variant
-                DiscountAmount = 0, // Default values - you might want to calculate these from stored data
+                // Get customer info
+                var customer = await _customerService.GetByIdAsync(quotation.CustomerId);
+                ViewBag.Customer = customer;
+
+                ViewBag.DealerId = GetDealerIdFromSession();
+
+                // Convert QuotationViewModel to QuotationCreateViewModel
+                // Get the vehicle variant to get base price
+                var variant = await _vehicleVariantService.GetByIdAsync(quotation.VariantId);
+                var basePrice = variant?.Price ?? quotation.Price;
+
+                var editModel = new QuotationCreateViewModel
+                {
+                    QuotationId = id, // Set the ID for edit mode
+                    CustomerId = quotation.CustomerId,
+                    VariantId = quotation.VariantId,
+                    DealerId = quotation.DealerId,
+                    BasePrice = basePrice, // Use actual base price from variant
+                    DiscountAmount = 0, // Default values - you might want to calculate these from stored data
                 AdditionalFees = 0,
                 TaxRate = 0.1m,
                 DiscountDescription = "",
@@ -386,6 +461,12 @@ namespace ASM1.WebMVC.Controllers
             };
 
             return View("Create", editModel);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction("Index");
+            }
         }
 
         [HttpGet]
@@ -409,32 +490,49 @@ namespace ASM1.WebMVC.Controllers
                 CreatedAt = DateTime.Now
             };
 
-            // Get vehicle variants for dropdown
-            var variantsResponse = await _vehicleVariantService.GetAllAsync();
-            ViewBag.VehicleVariants = variantsResponse.Success ? variantsResponse.Data : new List<VehicleVariantViewModel>();
+            try
+            {
+                // Get vehicle variants for dropdown
+                var variants = await _vehicleVariantService.GetAllAsync();
+                ViewBag.VehicleVariants = _mapper.Map<List<VehicleVariantViewModel>>(variants);
 
-            // Get customer info
-            var customerResponse = await _customerService.GetByIdAsync(quotation.CustomerId);
-            ViewBag.Customer = customerResponse?.Data;
+                // Get customer info
+                var customer = await _customerService.GetByIdAsync(quotation.CustomerId);
+                ViewBag.Customer = customer;
 
-            ViewBag.DealerId = GetDealerIdFromSession();
-            ViewBag.IsDuplicate = true;
+                ViewBag.DealerId = GetDealerIdFromSession();
+                ViewBag.IsDuplicate = true;
 
-            return View("Create", newQuotation);
+                return View("Create", newQuotation);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction("Index");
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> Print(int id)
         {
-            var quotation = await _quotationService.GetDetailsByIdAsync(id);
-            if (quotation == null)
+            try
             {
-                TempData["Error"] = "Quotation not found.";
+                var quotation = await _quotationService.GetByIdAsync(id);
+                if (quotation == null)
+                {
+                    TempData["Error"] = "Quotation not found.";
+                    return RedirectToAction("Index");
+                }
+
+                var viewModel = _mapper.Map<QuotationDetailViewModel>(quotation);
+                ViewBag.IsPrintView = true;
+                return View("Details", viewModel);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
                 return RedirectToAction("Index");
             }
-
-            ViewBag.IsPrintView = true;
-            return View("Details", quotation);
         }
 
         [HttpGet]

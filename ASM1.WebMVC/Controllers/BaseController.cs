@@ -1,4 +1,3 @@
-using ASM1.Service.Models;
 using ASM1.WebMVC.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,51 +6,30 @@ namespace ASM1.WebMVC.Controllers
     public abstract class BaseController : Controller
     {
         /// <summary>
-        /// Xử lý ServiceResponse và trả về view với model state được cập nhật
+        /// Handle success operation with redirect
         /// </summary>
-        protected IActionResult HandleServiceResponse<T>(ServiceResponse<T> response, string viewName, object model)
+        protected IActionResult HandleSuccess(string message, string redirectAction)
         {
-            if (!response.Success)
-            {
-                this.HandleResponse(response);
-                return View(viewName, model);
-            }
-
-            return View(viewName, response.Data);
+            this.SetSuccessMessage(message);
+            return RedirectToAction(redirectAction);
         }
 
         /// <summary>
-        /// Xử lý ServiceResponse và redirect hoặc return view
+        /// Handle success operation with redirect to different controller
         /// </summary>
-        protected IActionResult HandleServiceResponse(ServiceResponse response, string successRedirectAction, string errorViewName, object model)
+        protected IActionResult HandleSuccess(string message, string redirectAction, string redirectController)
         {
-            if (response.Success)
-            {
-                TempData["Success"] = response.Message;
-                return RedirectToAction(successRedirectAction);
-            }
-            else
-            {
-                this.HandleResponse(response);
-                return View(errorViewName, model);
-            }
+            this.SetSuccessMessage(message);
+            return RedirectToAction(redirectAction, redirectController);
         }
 
         /// <summary>
-        /// Xử lý ServiceResponse và redirect hoặc return view với controller khác
+        /// Handle error operation and return view
         /// </summary>
-        protected IActionResult HandleServiceResponse(ServiceResponse response, string successRedirectAction, string successRedirectController, string errorViewName, object model)
+        protected IActionResult HandleError(string errorMessage, string viewName, object model)
         {
-            if (response.Success)
-            {
-                TempData["Success"] = response.Message;
-                return RedirectToAction(successRedirectAction, successRedirectController);
-            }
-            else
-            {
-                this.HandleResponse(response);
-                return View(errorViewName, model);
-            }
+            this.AddError(errorMessage);
+            return View(viewName, model);
         }
 
         /// <summary>

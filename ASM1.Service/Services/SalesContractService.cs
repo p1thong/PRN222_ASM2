@@ -1,45 +1,37 @@
 using ASM1.Repository.Models;
 using ASM1.Repository.Repositories;
-using ASM1.Service.Models;
 using ASM1.Service.Services.Interfaces;
-using AutoMapper;
 
 namespace ASM1.Service.Services
 {
     public class SalesContractService : ISalesContractService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
 
-        public SalesContractService(IUnitOfWork unitOfWork, IMapper mapper)
+        public SalesContractService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
         }
 
-        public async Task<IEnumerable<SalesContractViewModel>> GetAllAsync()
+        public async Task<IEnumerable<SalesContract>> GetAllAsync()
         {
-            var contracts = await _unitOfWork.SalesContracts.GetAllAsync();
-            return _mapper.Map<IEnumerable<SalesContractViewModel>>(contracts);
+            return await _unitOfWork.SalesContracts.GetAllAsync();
         }
 
-        public async Task<SalesContractViewModel?> GetByIdAsync(int id)
+        public async Task<SalesContract?> GetByIdAsync(int id)
         {
-            var contract = await _unitOfWork.SalesContracts.GetByIdAsync(id);
-            return contract == null ? null : _mapper.Map<SalesContractViewModel>(contract);
+            return await _unitOfWork.SalesContracts.GetByIdAsync(id);
         }
 
-        public async Task AddAsync(SalesContractCreateViewModel contractVm)
+        public async Task AddAsync(SalesContract contract)
         {
-            var contract = _mapper.Map<SalesContract>(contractVm);
             contract.SaleContractId = await _unitOfWork.SalesContracts.GenerateUniqueSalesContractIdAsync();
             await _unitOfWork.SalesContracts.AddAsync(contract);
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(SalesContractViewModel contractVm)
+        public async Task UpdateAsync(SalesContract contract)
         {
-            var contract = _mapper.Map<SalesContract>(contractVm);
             await _unitOfWork.SalesContracts.UpdateAsync(contract);
             await _unitOfWork.SaveChangesAsync();
         }

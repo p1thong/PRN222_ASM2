@@ -6,5 +6,7 @@ namespace ASM1.Repository.Repositories.Interfaces
     public interface IOrderRepository : IGenericRepository<Order>
     {
         Task<int> GenerateUniqueOrderIdAsync();
+        Task<IEnumerable<Order>> GetAllWithDetailsAsync();
+        Task<Order?> GetByIdWithDetailsAsync(int id);
     }
 }

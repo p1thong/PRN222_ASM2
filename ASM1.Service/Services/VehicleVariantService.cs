@@ -1,219 +1,56 @@
-using ASM1.Repository.Models;
+﻿using ASM1.Repository.Models;
 using ASM1.Repository.Repositories;
-using ASM1.Service.Models;
 using ASM1.Service.Services.Interfaces;
-using AutoMapper;
 
 namespace ASM1.Service.Services
 {
     public class VehicleVariantService : IVehicleVariantService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
 
-        public VehicleVariantService(IUnitOfWork unitOfWork, IMapper mapper)
+        public VehicleVariantService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
         }
 
-        public async Task<ServiceResponse<IEnumerable<VehicleVariantViewModel>>> GetAllAsync()
+        public async Task<IEnumerable<VehicleVariant>> GetAllAsync()
         {
-            try
-            {
-                var variants = await _unitOfWork.VehicleVariants.GetVariantsWithDetailsAsync();
-                var variantVMs = _mapper.Map<IEnumerable<VehicleVariantViewModel>>(variants);
-                return new ServiceResponse<IEnumerable<VehicleVariantViewModel>>
-                {
-                    Success = true,
-                    Data = variantVMs
-                };
-            }
-            catch (Exception ex)
-            {
-                return new ServiceResponse<IEnumerable<VehicleVariantViewModel>>
-                {
-                    Success = false,
-                    Message = ex.Message
-                };
-            }
+            return await _unitOfWork.VehicleVariants.GetVariantsWithDetailsAsync();
         }
 
-        public async Task<ServiceResponse<VehicleVariantViewModel?>> GetByIdAsync(int id)
+        public async Task<VehicleVariant?> GetByIdAsync(int id)
         {
-            try
-            {
-                var variant = await _unitOfWork.VehicleVariants.GetVariantWithDetailsAsync(id);
-                if (variant == null)
-                {
-                    return new ServiceResponse<VehicleVariantViewModel?>
-                    {
-                        Success = false,
-                        Message = "Vehicle variant not found"
-                    };
-                }
-
-                var variantVM = _mapper.Map<VehicleVariantViewModel>(variant);
-                return new ServiceResponse<VehicleVariantViewModel?>
-                {
-                    Success = true,
-                    Data = variantVM
-                };
-            }
-            catch (Exception ex)
-            {
-                return new ServiceResponse<VehicleVariantViewModel?>
-                {
-                    Success = false,
-                    Message = ex.Message
-                };
-            }
+            return await _unitOfWork.VehicleVariants.GetVariantWithDetailsAsync(id);
         }
 
-        public async Task<ServiceResponse<VehicleVariantDetailViewModel?>> GetDetailByIdAsync(int id)
+        public async Task AddAsync(VehicleVariant variant)
         {
-            try
-            {
-                var variant = await _unitOfWork.VehicleVariants.GetVariantWithDetailsAsync(id);
-                if (variant == null)
-                {
-                    return new ServiceResponse<VehicleVariantDetailViewModel?>
-                    {
-                        Success = false,
-                        Message = "Vehicle variant not found"
-                    };
-                }
-
-                var variantDetailVM = _mapper.Map<VehicleVariantDetailViewModel>(variant);
-                return new ServiceResponse<VehicleVariantDetailViewModel?>
-                {
-                    Success = true,
-                    Data = variantDetailVM
-                };
-            }
-            catch (Exception ex)
-            {
-                return new ServiceResponse<VehicleVariantDetailViewModel?>
-                {
-                    Success = false,
-                    Message = ex.Message
-                };
-            }
+            await _unitOfWork.VehicleVariants.AddAsync(variant);
+            await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<ServiceResponse<bool>> AddAsync(VehicleVariantCreateViewModel variantVM)
+        public async Task UpdateAsync(VehicleVariant variant)
         {
-            try
-            {
-                var variant = _mapper.Map<VehicleVariant>(variantVM);
-                await _unitOfWork.VehicleVariants.AddAsync(variant);
-                await _unitOfWork.SaveChangesAsync();
-
-                return new ServiceResponse<bool>
-                {
-                    Success = true,
-                    Data = true
-                };
-            }
-            catch (Exception ex)
-            {
-                return new ServiceResponse<bool>
-                {
-                    Success = false,
-                    Message = ex.Message
-                };
-            }
+            await _unitOfWork.VehicleVariants.UpdateAsync(variant);
+            await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<ServiceResponse<bool>> UpdateAsync(VehicleVariantViewModel variantVM)
+        public async Task DeleteAsync(int id)
         {
-            try
-            {
-                var variant = _mapper.Map<VehicleVariant>(variantVM);
-                await _unitOfWork.VehicleVariants.UpdateAsync(variant);
-                await _unitOfWork.SaveChangesAsync();
-
-                return new ServiceResponse<bool>
-                {
-                    Success = true,
-                    Data = true
-                };
-            }
-            catch (Exception ex)
-            {
-                return new ServiceResponse<bool>
-                {
-                    Success = false,
-                    Message = ex.Message
-                };
-            }
+            await _unitOfWork.VehicleVariants.DeleteAsync(id);
+            await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<ServiceResponse<bool>> DeleteAsync(int id)
+        public async Task<IEnumerable<VehicleVariant>> GetByModelAsync(int modelId)
         {
-            try
-            {
-                await _unitOfWork.VehicleVariants.DeleteAsync(id);
-                await _unitOfWork.SaveChangesAsync();
-
-                return new ServiceResponse<bool>
-                {
-                    Success = true,
-                    Data = true
-                };
-            }
-            catch (Exception ex)
-            {
-                return new ServiceResponse<bool>
-                {
-                    Success = false,
-                    Message = ex.Message
-                };
-            }
+            var variants = await _unitOfWork.VehicleVariants.GetVariantsWithDetailsAsync();
+            return variants.Where(v => v.VehicleModelId == modelId).ToList();
         }
 
-        public async Task<ServiceResponse<IEnumerable<VehicleVariantViewModel>>> GetByModelAsync(int modelId)
+        public async Task<IEnumerable<VehicleVariant>> GetByManufacturerAsync(int manufacturerId)
         {
-            try
-            {
-                var variants = await _unitOfWork.VehicleVariants.GetVariantsByModelAsync(modelId);
-                var variantVMs = _mapper.Map<IEnumerable<VehicleVariantViewModel>>(variants);
-                return new ServiceResponse<IEnumerable<VehicleVariantViewModel>>
-                {
-                    Success = true,
-                    Data = variantVMs
-                };
-            }
-            catch (Exception ex)
-            {
-                return new ServiceResponse<IEnumerable<VehicleVariantViewModel>>
-                {
-                    Success = false,
-                    Message = ex.Message
-                };
-            }
-        }
-
-        public async Task<ServiceResponse<IEnumerable<VehicleVariantViewModel>>> GetByManufacturerAsync(int manufacturerId)
-        {
-            try
-            {
-                var variants = await _unitOfWork.VehicleVariants.GetVariantsByManufacturerAsync(manufacturerId);
-                var variantVMs = _mapper.Map<IEnumerable<VehicleVariantViewModel>>(variants);
-                return new ServiceResponse<IEnumerable<VehicleVariantViewModel>>
-                {
-                    Success = true,
-                    Data = variantVMs
-                };
-            }
-            catch (Exception ex)
-            {
-                return new ServiceResponse<IEnumerable<VehicleVariantViewModel>>
-                {
-                    Success = false,
-                    Message = ex.Message
-                };
-            }
+            var variants = await _unitOfWork.VehicleVariants.GetVariantsWithDetailsAsync();
+            return variants.Where(v => v.VehicleModel?.ManufacturerId == manufacturerId).ToList();
         }
     }
 }

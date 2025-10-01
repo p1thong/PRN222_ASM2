@@ -1,7 +1,7 @@
-@model ASM1.Service.Models.QuotationCreateViewModel
+@model ASM1.WebMVC.Models.QuotationCreateViewModel
 @{
     ViewData["Title"] = Model?.IsEdit == true ? "Chỉnh sửa báo giá" : "Tạo báo giá mới";
-    var customer = ViewBag.Customer as ASM1.Service.Models.CustomerViewModel;
+    var customer = ViewBag.Customer as ASM1.WebMVC.Models.CustomerViewModel;
 }
 
 <div class="container mt-4">
@@ -100,7 +100,7 @@
                                     <option value="">-- Chọn variant xe --</option>
                                     @if (ViewBag.VehicleVariants != null)
                                     {
-                                        @foreach (var variant in (IEnumerable<ASM1.Service.Models.VehicleVariantViewModel>)ViewBag.VehicleVariants)
+                                        @foreach (var variant in (IEnumerable<ASM1.WebMVC.Models.VehicleVariantViewModel>)ViewBag.VehicleVariants)
                                         {
                                             <option value="@variant.VariantId" data-price="@variant.Price">
                                                 @variant.FullName - @(variant.Color ?? "N/A") - @(variant.ProductYear?.ToString() ?? "N/A") 

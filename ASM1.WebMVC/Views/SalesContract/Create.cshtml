@@ -1,0 +1,113 @@
+@model SalesContractCreateViewModel
+
+@{
+    ViewData["Title"] = "Create Sales Contract";
+}
+
+<div class="row">
+    <!-- Sidebar -->
+    @await Html.PartialAsync("_NavigationSidebar")
+
+    <!-- Main Content -->
+    <div class="col-md-9">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-file-earmark-text"></i> 
+                Create Sales Contract
+            </h2>
+            <a href="@Url.Action("Index", "Order")" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Orders
+            </a>
+        </div>
+
+        @if (ViewBag.Order != null)
+        {
+            var order = ViewBag.Order as OrderViewModel;
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-receipt"></i>
+                        Order Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Order ID:</strong> #@order?.OrderId<br>
+                            <strong>Customer:</strong> @(order?.CustomerName ?? $"Customer ID: {order?.CustomerId}")<br>
+                            <strong>Order Date:</strong> @(order?.OrderDate?.ToString("dd/MM/yyyy") ?? "N/A")
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Status:</strong> <span class="badge bg-primary">@(order?.Status ?? "Unknown")</span><br>
+                            <strong>Vehicle:</strong> @(order?.VehicleInfo ?? "N/A")<br>
+                            <strong>Total Amount:</strong> <span class="h5 text-success">@(order?.TotalAmount?.ToString("C0", new System.Globalization.CultureInfo("vi-VN")) ?? "N/A")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="bi bi-file-earmark-text"></i>
+                    Sales Contract Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Important:</strong> This sales contract formalizes the vehicle purchase agreement between the dealer and customer. Please ensure all order details are correct before signing.
+                </div>
+
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="OrderId" />
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="SignedDate" class="form-label">
+                                    <i class="bi bi-calendar-check"></i>
+                                    Contract Signing Date <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="SignedDate" type="date" class="form-control" />
+                                <span asp-validation-for="SignedDate" class="text-danger"></span>
+                                <div class="form-text">The date when the sales contract is officially signed by both parties.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <i class="bi bi-check-circle"></i>
+                                Contract Terms Confirmation
+                            </h6>
+                            <ul class="mb-0">
+                                <li>Vehicle details and specifications as agreed in the order</li>
+                                <li>Total purchase amount and payment terms</li>
+                                <li>Delivery schedule and conditions</li>
+                                <li>Warranty and after-sales service terms</li>
+                                <li>Customer and dealer information verification</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-file-earmark-check"></i> Create Sales Contract
+                        </button>
+                        <a href="@Url.Action("Index", "Order")" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

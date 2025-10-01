@@ -1,0 +1,219 @@
+@{
+    ViewData["Title"] = "Manufacturer Summary";
+    var manufacturerId = ViewBag.ManufacturerId;
+    var dashboardData = ViewBag.DashboardData as Dictionary<string, object>;
+    var topDealers = ViewBag.TopDealers as IEnumerable<object>;
+    var topModels = ViewBag.TopModels as IEnumerable<object>;
+    var underperformingDealers = ViewBag.UnderperformingDealers as IEnumerable<object>;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Manufacturer Summary Report</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Executive Summary -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <h5><i class="fas fa-chart-line"></i> Executive Summary</h5>
+                                <p>
+                                    This manufacturer has <strong>@dashboardData["TotalDealers"]</strong> active dealers with 
+                                    <strong>@dashboardData["TotalOrders"]</strong> total orders generating 
+                                    <strong>@(((decimal)dashboardData["TotalSales"]).ToString("C"))</strong> in sales.
+                                    Current sales achievement is <strong>@(((decimal)dashboardData["SalesAchievement"]).ToString("F1"))%</strong> of target.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top Performers -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title text-success">Top Performing Dealers</h5>
+                                </div>
+                                <div class="card-body">
+                                    @if (topDealers != null && topDealers.Any())
+                                    {
+                                        <div class="table-responsive">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Dealer</th>
+                                                        <th>Achievement</th>
+                                                        <th>Sales</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (dynamic dealer in topDealers)
+                                                    {
+                                                        <tr>
+                                                            <td>@dealer.DealerName</td>
+                                                            <td>
+                                                                <span class="badge bg-success">@dealer.Achievement%</span>
+                                                            </td>
+                                                            <td>@(((decimal)dealer.ActualSales).ToString("C"))</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted">No top performers data available</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title text-primary">Top Selling Models</h5>
+                                </div>
+                                <div class="card-body">
+                                    @if (topModels != null && topModels.Any())
+                                    {
+                                        <div class="table-responsive">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Model</th>
+                                                        <th>Orders</th>
+                                                        <th>Sales</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (dynamic model in topModels)
+                                                    {
+                                                        <tr>
+                                                            <td>@model.ModelName</td>
+                                                            <td>@model.TotalOrders</td>
+                                                            <td>@(((decimal)model.TotalSales).ToString("C"))</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted">No top models data available</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Underperforming Dealers -->
+                    @if (underperformingDealers != null && underperformingDealers.Any())
+                    {
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title text-warning">
+                                            <i class="fas fa-exclamation-triangle"></i> Dealers Needing Attention
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Dealer</th>
+                                                        <th>Achievement</th>
+                                                        <th>Target Sales</th>
+                                                        <th>Actual Sales</th>
+                                                        <th>Gap</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (dynamic dealer in underperformingDealers)
+                                                    {
+                                                        <tr>
+                                                            <td>@dealer.DealerName</td>
+                                                            <td>
+                                                                <span class="badge bg-danger">@dealer.Achievement%</span>
+                                                            </td>
+                                                            <td>@(((decimal)dealer.TargetSales).ToString("C"))</td>
+                                                            <td>@(((decimal)dealer.ActualSales).ToString("C"))</td>
+                                                            <td class="text-danger">
+                                                                @(((decimal)dealer.TargetSales - (decimal)dealer.ActualSales).ToString("C"))
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Action Items -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">Recommended Actions</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-group list-group-flush">
+                                        @if (underperformingDealers != null && underperformingDealers.Any())
+                                        {
+                                            <li class="list-group-item">
+                                                <i class="fas fa-exclamation-triangle text-warning"></i>
+                                                Review and support underperforming dealers to improve sales achievement
+                                            </li>
+                                        }
+                                        @if ((decimal)dashboardData["SalesAchievement"] < 80)
+                                        {
+                                            <li class="list-group-item">
+                                                <i class="fas fa-chart-line text-info"></i>
+                                                Consider promotional campaigns to boost overall sales performance
+                                            </li>
+                                        }
+                                        <li class="list-group-item">
+                                            <i class="fas fa-handshake text-success"></i>
+                                            Review and renew expiring dealer contracts
+                                        </li>
+                                        <li class="list-group-item">
+                                            <i class="fas fa-star text-primary"></i>
+                                            Leverage top-performing dealers' strategies across the network
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <a asp-action="Index" asp-route-manufacturerId="@manufacturerId" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                                </a>
+                                <div class="btn-group">
+                                    <a asp-action="DealerPerformance" asp-route-manufacturerId="@manufacturerId" class="btn btn-primary">
+                                        <i class="fas fa-chart-bar"></i> Detailed Performance
+                                    </a>
+                                    <a asp-action="OrderAnalytics" asp-route-manufacturerId="@manufacturerId" class="btn btn-info">
+                                        <i class="fas fa-chart-pie"></i> Order Analytics
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

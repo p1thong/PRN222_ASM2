@@ -1,0 +1,108 @@
+@model ASM1.Repository.Models.Promotion
+
+@{
+    ViewData["Title"] = "Delete Promotion";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title text-danger">
+                        <i class="fas fa-exclamation-triangle"></i> Delete Promotion - @Model.PromotionCode
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h5>Are you sure you want to delete this promotion?</h5>
+                        <p>This action cannot be undone.</p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <h5>Promotion Information</h5>
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <td><strong>Promotion ID:</strong></td>
+                                        <td>@Model.PromotionId</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Promotion Code:</strong></td>
+                                        <td><span class="badge bg-primary">@Model.PromotionCode</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Discount Amount:</strong></td>
+                                        <td class="text-success fw-bold">@Model.DiscountAmount.ToString("C")</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Valid Until:</strong></td>
+                                        <td>@(Model.ValidUntil?.ToString("dd/MM/yyyy") ?? "No Expiration")</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Status:</strong></td>
+                                        <td>
+                                            @if (Model.ValidUntil.HasValue && Model.ValidUntil < DateOnly.FromDateTime(DateTime.Now))
+                                            {
+                                                <span class="badge bg-danger">Expired</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success">Active</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <h5>Related Order</h5>
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <td><strong>Order ID:</strong></td>
+                                        <td>@Model.OrderId</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Customer:</strong></td>
+                                        <td>@Model.Order.Customer.FullName</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Vehicle:</strong></td>
+                                        <td>@Model.Order.Variant.VehicleModel.Name - @Model.Order.Variant.Version</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Original Price:</strong></td>
+                                        <td>@(Model.Order.Variant.Price?.ToString("C") ?? "N/A")</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Final Price:</strong></td>
+                                        <td class="text-success fw-bold">
+                                            @((Model.Order.Variant.Price - Model.DiscountAmount)?.ToString("C") ?? "N/A")
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form asp-action="Delete" method="post" class="mt-4">
+                        <input type="hidden" asp-for="PromotionId" />
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Delete Promotion
+                            </button>
+                            <a asp-action="Details" asp-route-id="@Model.PromotionId" class="btn btn-info">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to List
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

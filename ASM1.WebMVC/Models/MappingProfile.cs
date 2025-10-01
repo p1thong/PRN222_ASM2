@@ -26,7 +26,13 @@ namespace ASM1.WebMVC.Models
                 .ForMember(dest => dest.DealerName, opt => opt.MapFrom(src => src.Dealer != null ? src.Dealer.FullName : ""))
                 .ForMember(dest => dest.VehicleInfo, opt => opt.MapFrom(src => src.Variant != null && src.Variant.VehicleModel != null ? 
                     $"{src.Variant.VehicleModel.Manufacturer.Name} {src.Variant.VehicleModel.Name} {src.Variant.Version}" : ""))
-                .ReverseMap();
+                .ReverseMap()
+                .ForMember(dest => dest.Customer, opt => opt.Ignore())
+                .ForMember(dest => dest.Dealer, opt => opt.Ignore())
+                .ForMember(dest => dest.Variant, opt => opt.Ignore())
+                .ForMember(dest => dest.Payments, opt => opt.Ignore())
+                .ForMember(dest => dest.Promotions, opt => opt.Ignore())
+                .ForMember(dest => dest.SalesContracts, opt => opt.Ignore());
             CreateMap<OrderCreateViewModel, Order>();
 
             CreateMap<SalesContract, SalesContractViewModel>().ReverseMap();

@@ -1,0 +1,258 @@
+@model OrderViewModel
+
+@{
+    ViewData["Title"] = "Edit Order";
+    var customers = ViewBag.Customers as List<CustomerViewModel>;
+    var variants = ViewBag.VehicleVariants as List<VehicleVariantViewModel>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="bi bi-pencil-square"></i> 
+        Edit Order #@Model.OrderId
+    </h2>
+    <div>
+        <a href="@Url.Action("Details", "Order", new { id = Model.OrderId })" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Details
+        </a>
+    </div>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle"></i>
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<form asp-action="Edit" asp-controller="Order" method="post" class="needs-validation" novalidate>
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="OrderId" />
+    <input type="hidden" asp-for="DealerId" />
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle"></i>
+                        Order Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="CustomerId" class="form-label">
+                                    <i class="bi bi-person"></i> Customer *
+                                </label>
+                                <select asp-for="CustomerId" class="form-select" required>
+                                    <option value="">-- Select Customer --</option>
+                                    @if (customers != null)
+                                    {
+                                        @foreach (var customer in customers)
+                                        {
+                                            <option value="@customer.CustomerId" 
+                                                    selected="@(customer.CustomerId == Model.CustomerId ? "selected" : null)">
+                                                @customer.FullName
+                                            </option>
+                                        }
+                                    }
+                                </select>
+                                <span asp-validation-for="CustomerId" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="VariantId" class="form-label">
+                                    <i class="bi bi-car-front"></i> Vehicle Variant *
+                                </label>
+                                <select asp-for="VariantId" class="form-select" required>
+                                    <option value="">-- Select Vehicle Variant --</option>
+                                    @if (variants != null)
+                                    {
+                                        @foreach (var variant in variants)
+                                        {
+                                            <option value="@variant.VariantId" 
+                                                    data-price="@variant.Price"
+                                                    selected="@(variant.VariantId == Model.VariantId ? "selected" : null)">
+                                                @variant.FullName - @(variant.Price?.ToString("C0", new System.Globalization.CultureInfo("vi-VN")) ?? "N/A")
+                                            </option>
+                                        }
+                                    }
+                                </select>
+                                <span asp-validation-for="VariantId" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="Status" class="form-label">
+                                    <i class="bi bi-flag"></i> Status *
+                                </label>
+                                <select asp-for="Status" class="form-select" required>
+                                    <option value="">-- Select Status --</option>
+                                    <option value="Pending" selected="@(Model.Status == "Pending" ? "selected" : null)">Pending</option>
+                                    <option value="Confirmed" selected="@(Model.Status == "Confirmed" ? "selected" : null)">Confirmed</option>
+                                    <option value="Processing" selected="@(Model.Status == "Processing" ? "selected" : null)">Processing</option>
+                                    <option value="Completed" selected="@(Model.Status == "Completed" ? "selected" : null)">Completed</option>
+                                    <option value="Cancelled" selected="@(Model.Status == "Cancelled" ? "selected" : null)">Cancelled</option>
+                                </select>
+                                <span asp-validation-for="Status" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="OrderDate" class="form-label">
+                                    <i class="bi bi-calendar"></i> Order Date
+                                </label>
+                                <input asp-for="OrderDate" type="date" class="form-control" 
+                                       value="@(Model.OrderDate?.ToString("yyyy-MM-dd"))" />
+                                <span asp-validation-for="OrderDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="TotalAmount" class="form-label">
+                                    <i class="bi bi-currency-dollar"></i> Total Amount
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₫</span>
+                                    <input asp-for="TotalAmount" type="number" step="0.01" class="form-control" 
+                                           placeholder="Will be calculated automatically" readonly />
+                                </div>
+                                <span asp-validation-for="TotalAmount" class="text-danger"></span>
+                                <small class="form-text text-muted">
+                                    Total amount will be updated automatically when you select a vehicle variant.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label asp-for="Notes" class="form-label">
+                                    <i class="bi bi-note-text"></i> Notes
+                                </label>
+                                <textarea asp-for="Notes" class="form-control" rows="4" 
+                                          placeholder="Additional notes about this order..."></textarea>
+                                <span asp-validation-for="Notes" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-gear"></i>
+                        Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Update Order
+                        </button>
+                        <a href="@Url.Action("Details", "Order", new { id = Model.OrderId })" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="bi bi-info-circle"></i>
+                        Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-0">
+                        <small>
+                            <i class="bi bi-lightbulb"></i>
+                            <strong>Tips:</strong><br/>
+                            • Make sure to select the correct customer and vehicle variant<br/>
+                            • The total amount will be automatically calculated<br/>
+                            • You can add notes for additional information
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Update total amount when variant is changed
+            $('#VariantId').change(function() {
+                var selectedOption = $(this).find('option:selected');
+                var price = selectedOption.data('price');
+                if (price) {
+                    $('#TotalAmount').val(price);
+                } else {
+                    $('#TotalAmount').val('');
+                }
+            });
+
+            // Bootstrap validation
+            (function() {
+                'use strict';
+                window.addEventListener('load', function() {
+                    var forms = document.getElementsByClassName('needs-validation');
+                    var validation = Array.prototype.filter.call(forms, function(form) {
+                        form.addEventListener('submit', function(event) {
+                            if (form.checkValidity() === false) {
+                                event.preventDefault();
+                                event.stopPropagation();
+                            }
+                            form.classList.add('was-validated');
+                        }, false);
+                    });
+                }, false);
+            })();
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        .was-validated .form-select:valid {
+            border-color: #198754;
+            padding-right: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='m2.3 6.73.04-.01l1.5-1.5c.08-.08.12-.18.12-.29s-.04-.21-.12-.29L2.83 3.61c-.16-.16-.42-.16-.58 0-.16.16-.16.42 0 .58L3.54 5.5l-1.29 1.31c-.16.16-.16.42 0 .58.08.08.19.12.29.12z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+
+        .was-validated .form-select:invalid {
+            border-color: #dc3545;
+            padding-right: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 4.6 2.4 2.4M8.2 4.6l-2.4 2.4'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+
+        .alert-info {
+            background-color: #e7f3ff;
+            border-color: #b3d7ff;
+            color: #0c5460;
+        }
+    </style>
+}

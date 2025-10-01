@@ -64,6 +64,50 @@
                                     <th scope="col" class="text-center">
                                         <i class="bi bi-gear"></i> Actions
                                     </th>
+@model IEnumerable<ASM1.Repository.Models.Order>
+
+@{
+    ViewData["Title"] = "Orders Management";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">Orders Management</h3>
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create New Order
+                    </a>
+                </div>
+                <div class="card-body">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Dealer</th>
+                                    <th>Vehicle</th>
+                                    <th>Price</th>
+                                    <th>Order Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -145,6 +189,49 @@
                                                         </button>
                                                     </li>
                                                 </ul>
+                                        <td>@order.OrderId</td>
+                                        <td>@order.Customer.FullName</td>
+                                        <td>@order.Dealer.FullName</td>
+                                        <td>
+                                            @order.Variant.VehicleModel.Name - @order.Variant.Version
+                                            <br><small class="text-muted">@order.Variant.Color, @order.Variant.ProductYear</small>
+                                        </td>
+                                        <td>@(order.Variant.Price?.ToString("C") ?? "N/A")</td>
+                                        <td>@(order.OrderDate?.ToString("dd/MM/yyyy") ?? "N/A")</td>
+                                        <td>
+                                            @switch (order.Status?.ToLower())
+                                            {
+                                                case "pending":
+                                                    <span class="badge bg-warning">Pending</span>
+                                                    break;
+                                                case "confirmed":
+                                                    <span class="badge bg-info">Confirmed</span>
+                                                    break;
+                                                case "completed":
+                                                    <span class="badge bg-success">Completed</span>
+                                                    break;
+                                                case "cancelled":
+                                                    <span class="badge bg-danger">Cancelled</span>
+                                                    break;
+                                                default:
+                                                    <span class="badge bg-secondary">@order.Status</span>
+                                                    break;
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a asp-action="Details" asp-route-id="@order.OrderId" 
+                                                   class="btn btn-sm btn-info" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a asp-action="Edit" asp-route-id="@order.OrderId" 
+                                                   class="btn btn-sm btn-warning" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a asp-action="Delete" asp-route-id="@order.OrderId" 
+                                                   class="btn btn-sm btn-danger" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>
@@ -206,3 +293,6 @@
         }
     </script>
 }
+        </div>
+    </div>
+</div>

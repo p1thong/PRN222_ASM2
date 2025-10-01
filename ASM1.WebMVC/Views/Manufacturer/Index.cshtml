@@ -1,0 +1,71 @@
+@model IEnumerable<ASM1.Repository.Models.Manufacturer>
+
+@{
+    ViewData["Title"] = "Danh sách hãng xe";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fas fa-industry"></i>
+                        Danh sách hãng xe
+                    </h3>
+                </div>
+                <div class="card-body">
+                    @if (Model != null && Model.Any())
+                    {
+                        <div class="row">
+                            @foreach (var manufacturer in Model)
+                            {
+                                <div class="col-md-6 col-lg-4 mb-4">
+                                    <div class="card h-100 shadow-sm manufacturer-card">
+                                        <div class="card-body d-flex flex-column">
+                                            <h5 class="card-title text-primary">@manufacturer.Name</h5>
+                                            <p class="card-text">
+                                                <strong>Quốc gia:</strong> @manufacturer.Country<br>
+                                                <small class="text-muted">@manufacturer.Address</small>
+                                            </p>
+                                            <div class="mt-auto">
+                                                <a href="@Url.Action("Models", "Manufacturer", new { id = manufacturer.ManufacturerId })" 
+                                                   class="btn btn-primary btn-block">
+                                                    <i class="fas fa-car"></i>
+                                                    Xem các mẫu xe
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle"></i>
+                            Chưa có hãng xe nào trong hệ thống.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.manufacturer-card {
+    transition: transform 0.2s;
+    border: 1px solid #dee2e6;
+}
+
+.manufacturer-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+
+.btn-block {
+    width: 100%;
+}
+</style>

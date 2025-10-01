@@ -1,0 +1,72 @@
+@model IEnumerable<object>
+
+@{
+    ViewData["Title"] = "Dealer Performance";
+    var manufacturerId = ViewBag.ManufacturerId;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">Dealer Performance Analysis</h3>
+                    <a asp-action="Index" asp-route-manufacturerId="@manufacturerId" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Dealer Name</th>
+                                    <th>Target Sales</th>
+                                    <th>Actual Sales</th>
+                                    <th>Achievement</th>
+                                    <th>Credit Limit</th>
+                                    <th>Signed Date</th>
+                                    <th>Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (dynamic dealer in Model)
+                                {
+                                    <tr>
+                                        <td>@dealer.DealerName</td>
+                                        <td>@(((decimal)dealer.TargetSales).ToString("C"))</td>
+                                        <td>@(((decimal)dealer.ActualSales).ToString("C"))</td>
+                                        <td>
+                                            @{
+                                                var achievement = (decimal)dealer.Achievement;
+                                                var badgeClass = achievement >= 100 ? "bg-success" : 
+                                                               achievement >= 75 ? "bg-warning" : "bg-danger";
+                                            }
+                                            <span class="badge @badgeClass">@achievement.ToString("F1")%</span>
+                                        </td>
+                                        <td>@(((decimal)dealer.CreditLimit).ToString("C"))</td>
+                                        <td>@(((DateOnly)dealer.SignedDate).ToString("dd/MM/yyyy"))</td>
+                                        <td>
+                                            @if (achievement >= 100)
+                                            {
+                                                <span class="text-success"><i class="fas fa-star"></i> Excellent</span>
+                                            }
+                                            else if (achievement >= 75)
+                                            {
+                                                <span class="text-warning"><i class="fas fa-thumbs-up"></i> Good</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Needs Improvement</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

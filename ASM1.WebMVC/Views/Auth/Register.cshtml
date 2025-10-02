@@ -3,75 +3,82 @@
     Layout = "_Layout";
 }
 
-<div class="container">
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-8 col-lg-6">
-            <div class="card shadow-lg border-0 rounded-lg mt-5">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="text-center font-weight-bold my-2">Đăng ký tài khoản</h3>
+<div class="min-vh-100 d-flex align-items-center justify-content-center bg-light">
+    <div class="card shadow border-0 rounded-4" style="max-width: 500px; width:100%; backdrop-filter: blur(12px);">
+        <!-- Header -->
+        <div class="card-header text-white text-center rounded-top-4"
+             style="background: linear-gradient(135deg, #4e73df, #1cc88a);">
+            <h3 class="fw-bold mb-0">Đăng ký tài khoản</h3>
+        </div>
+
+        <!-- Body -->
+        <div class="card-body p-4">
+            <form method="post" asp-controller="Auth" asp-action="Register">
+                <div class="form-floating mb-3 position-relative">
+                    <input class="form-control rounded-3 ps-5" id="fullName" name="fullName" type="text" placeholder="Họ và tên" required />
+                    <label for="fullName">Họ và tên</label>
+                    <i class="bi bi-person-fill position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
                 </div>
-                <div class="card-body">
-                    <form method="post" asp-controller="Auth" asp-action="Register">
-                        <div class="row mb-3">
-                            <div class="col-md-12">
-                                <div class="form-floating mb-3">
-                                    <input class="form-control" id="fullName" name="fullName" type="text" placeholder="Họ và tên" required />
-                                    <label for="fullName">Họ và tên</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-12">
-                                <div class="form-floating mb-3">
-                                    <input class="form-control" id="email" name="email" type="email" placeholder="name@example.com" required />
-                                    <label for="email">Email</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-12">
-                                <div class="form-floating mb-3">
-                                    <input class="form-control" id="phone" name="phone" type="tel" placeholder="Số điện thoại" />
-                                    <label for="phone">Số điện thoại</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <div class="form-floating mb-3">
-                                    <input class="form-control" id="password" name="password" type="password" placeholder="Mật khẩu" required />
-                                    <label for="password">Mật khẩu</label>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-floating mb-3">
-                                    <input class="form-control" id="confirmPassword" name="confirmPassword" type="password" placeholder="Xác nhận mật khẩu" required />
-                                    <label for="confirmPassword">Xác nhận mật khẩu</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mt-4 mb-0">
-                            <div class="d-grid">
-                                <button class="btn btn-primary btn-block" type="submit">Đăng ký</button>
-                            </div>
-                        </div>
-                    </form>
-                    @if (ViewBag.Error != null)
-                    {
-                        <div class="alert alert-danger mt-3">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>@ViewBag.Error
-                        </div>
-                    }
-                    @if (ViewBag.Success != null)
-                    {
-                        <div class="alert alert-success mt-3">
-                            <i class="bi bi-check-circle-fill me-2"></i>@ViewBag.Success
-                        </div>
-                    }
+
+                <div class="form-floating mb-3 position-relative">
+                    <input class="form-control rounded-3 ps-5" id="email" name="email" type="email" placeholder="name@example.com" required />
+                    <label for="email">Email</label>
+                    <i class="bi bi-envelope-fill position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
                 </div>
-                <div class="card-footer text-center py-3">
-                    <div class="small"><a href="/Auth/Login" class="text-primary">Đã có tài khoản? Đăng nhập ngay!</a></div>
+
+                <div class="form-floating mb-3 position-relative">
+                    <input class="form-control rounded-3 ps-5" id="phone" name="phone" type="tel" placeholder="Số điện thoại" />
+                    <label for="phone">Số điện thoại</label>
+                    <i class="bi bi-telephone-fill position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
                 </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="form-floating position-relative">
+                            <input class="form-control rounded-3 ps-5" id="password" name="password" type="password" placeholder="Mật khẩu" required />
+                            <label for="password">Mật khẩu</label>
+                            <i class="bi bi-lock-fill position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating position-relative">
+                            <input class="form-control rounded-3 ps-5" id="confirmPassword" name="confirmPassword" type="password" placeholder="Xác nhận mật khẩu" required />
+                            <label for="confirmPassword">Xác nhận mật khẩu</label>
+                            <i class="bi bi-shield-lock-fill position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Button -->
+                <div class="mt-4">
+                    <button class="btn w-100 text-white fw-semibold py-2 rounded-3"
+                            style="background: linear-gradient(135deg, #1cc88a, #36b9cc);" type="submit">
+                        <i class="bi bi-person-plus-fill me-1"></i> Đăng ký
+                    </button>
+                </div>
+            </form>
+
+            <!-- Alerts -->
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger mt-3 rounded-3">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>@ViewBag.Error
+                </div>
+            }
+            @if (ViewBag.Success != null)
+            {
+                <div class="alert alert-success mt-3 rounded-3">
+                    <i class="bi bi-check-circle-fill me-2"></i>@ViewBag.Success
+                </div>
+            }
+        </div>
+
+        <!-- Footer -->
+        <div class="card-footer text-center bg-light rounded-bottom-4 py-3">
+            <div class="small">
+                <a href="/Auth/Login" class="fw-semibold text-decoration-none text-primary">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Đã có tài khoản? Đăng nhập ngay!
+                </a>
             </div>
         </div>
     </div>

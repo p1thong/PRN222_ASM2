@@ -1,0 +1,72 @@
+@model IEnumerable<ASM1.Repository.Models.DealerContract>
+
+@{
+    ViewData["Title"] = "Active Contracts";
+    var manufacturerId = ViewBag.ManufacturerId;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">Active Dealer Contracts</h3>
+                    <a asp-action="Index" asp-route-manufacturerId="@manufacturerId" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Contract ID</th>
+                                    <th>Dealer</th>
+                                    <th>Target Sales</th>
+                                    <th>Credit Limit</th>
+                                    <th>Signed Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var contract in Model)
+                                {
+                                    <tr>
+                                        <td>@contract.DealerContractId</td>
+                                        <td>@contract.Dealer.FullName</td>
+                                        <td>@(contract.TargetSales?.ToString("C") ?? "N/A")</td>
+                                        <td>@(contract.CreditLimit?.ToString("C") ?? "N/A")</td>
+                                        <td>@(contract.SignedDate?.ToString("dd/MM/yyyy") ?? "Not Signed")</td>
+                                        <td>
+                                            @if (contract.SignedDate.HasValue)
+                                            {
+                                                <span class="badge bg-success">Active</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning">Pending</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a asp-controller="DealerContract" asp-action="Details" asp-route-id="@contract.DealerContractId" 
+                                                   class="btn btn-sm btn-info" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a asp-controller="DealerContract" asp-action="Edit" asp-route-id="@contract.DealerContractId" 
+                                                   class="btn btn-sm btn-warning" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

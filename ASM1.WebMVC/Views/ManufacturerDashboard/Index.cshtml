@@ -1,0 +1,166 @@
+@model Dictionary<string, object>
+
+@{
+    ViewData["Title"] = "Manufacturer Dashboard";
+    var manufacturerId = ViewBag.ManufacturerId;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Manufacturer Dashboard - Overview</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Key Metrics -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="info-box bg-info">
+                                <span class="info-box-icon"><i class="fas fa-store"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Total Dealers</span>
+                                    <span class="info-box-number">@Model["TotalDealers"]</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box bg-success">
+                                <span class="info-box-icon"><i class="fas fa-shopping-cart"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Total Orders</span>
+                                    <span class="info-box-number">@Model["TotalOrders"]</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box bg-warning">
+                                <span class="info-box-icon"><i class="fas fa-dollar-sign"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Total Sales</span>
+                                    <span class="info-box-number">@(((decimal)Model["TotalSales"]).ToString("C"))</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box bg-primary">
+                                <span class="info-box-icon"><i class="fas fa-chart-line"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Sales Achievement</span>
+                                    <span class="info-box-number">@(((decimal)Model["SalesAchievement"]).ToString("F1"))%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top Performers -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">Top Performing Dealers</h5>
+                                </div>
+                                <div class="card-body">
+                                    @if (Model["TopDealers"] != null)
+                                    {
+                                        <div class="table-responsive">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Dealer</th>
+                                                        <th>Achievement</th>
+                                                        <th>Sales</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (dynamic dealer in (IEnumerable<object>)Model["TopDealers"])
+                                                    {
+                                                        <tr>
+                                                            <td>@dealer.DealerName</td>
+                                                            <td>
+                                                                <span class="badge bg-success">@dealer.Achievement%</span>
+                                                            </td>
+                                                            <td>@(((decimal)dealer.ActualSales).ToString("C"))</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted">No data available</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">Top Selling Models</h5>
+                                </div>
+                                <div class="card-body">
+                                    @if (Model["TopModels"] != null)
+                                    {
+                                        <div class="table-responsive">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Model</th>
+                                                        <th>Orders</th>
+                                                        <th>Sales</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (dynamic topModel in (IEnumerable<object>)Model["TopModels"])
+                                                    {
+                                                        <tr>
+                                                            <td>@topModel.ModelName</td>
+                                                            <td>@topModel.TotalOrders</td>
+                                                            <td>@(((decimal)topModel.TotalSales).ToString("C"))</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted">No data available</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">Quick Actions</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="DealerPerformance" asp-route-manufacturerId="@manufacturerId" class="btn btn-primary">
+                                            <i class="fas fa-chart-bar"></i> Dealer Performance
+                                        </a>
+                                        <a asp-action="OrderAnalytics" asp-route-manufacturerId="@manufacturerId" class="btn btn-info">
+                                            <i class="fas fa-chart-pie"></i> Order Analytics
+                                        </a>
+                                        <a asp-action="SalesTrend" asp-route-manufacturerId="@manufacturerId" class="btn btn-success">
+                                            <i class="fas fa-chart-line"></i> Sales Trend
+                                        </a>
+                                        <a asp-action="ActiveContracts" asp-route-manufacturerId="@manufacturerId" class="btn btn-warning">
+                                            <i class="fas fa-file-contract"></i> Active Contracts
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

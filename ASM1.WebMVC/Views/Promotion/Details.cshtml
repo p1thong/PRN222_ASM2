@@ -1,0 +1,159 @@
+@model ASM1.Repository.Models.Promotion
+
+@{
+    ViewData["Title"] = "Promotion Details";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">Promotion Details - @Model.PromotionCode</h3>
+                    <div>
+                        <a asp-action="Edit" asp-route-id="@Model.PromotionId" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <h5>Promotion Information</h5>
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <td><strong>Promotion ID:</strong></td>
+                                        <td>@Model.PromotionId</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Promotion Code:</strong></td>
+                                        <td><span class="badge bg-primary fs-6">@Model.PromotionCode</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Discount Amount:</strong></td>
+                                        <td class="text-success fw-bold">@Model.DiscountAmount.ToString("C")</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Valid Until:</strong></td>
+                                        <td>@(Model.ValidUntil?.ToString("dd/MM/yyyy") ?? "No Expiration")</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Status:</strong></td>
+                                        <td>
+                                            @if (Model.ValidUntil.HasValue && Model.ValidUntil < DateOnly.FromDateTime(DateTime.Now))
+                                            {
+                                                <span class="badge bg-danger">Expired</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success">Active</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <h5>Order Information</h5>
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <td><strong>Order ID:</strong></td>
+                                        <td>@Model.OrderId</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Customer:</strong></td>
+                                        <td>@Model.Order.Customer.FullName</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Dealer:</strong></td>
+                                        <td>@Model.Order.Dealer.FullName</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Order Date:</strong></td>
+                                        <td>@(Model.Order.OrderDate?.ToString("dd/MM/yyyy") ?? "N/A")</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Order Status:</strong></td>
+                                        <td>
+                                            @switch (Model.Order.Status?.ToLower())
+                                            {
+                                                case "pending":
+                                                    <span class="badge bg-warning">Pending</span>
+                                                    break;
+                                                case "confirmed":
+                                                    <span class="badge bg-info">Confirmed</span>
+                                                    break;
+                                                case "completed":
+                                                    <span class="badge bg-success">Completed</span>
+                                                    break;
+                                                case "cancelled":
+                                                    <span class="badge bg-danger">Cancelled</span>
+                                                    break;
+                                                default:
+                                                    <span class="badge bg-secondary">@Model.Order.Status</span>
+                                                    break;
+                                            }
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="info-box">
+                                <h5>Vehicle Information</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>Manufacturer:</strong></td>
+                                                <td>@Model.Order.Variant.VehicleModel.Manufacturer.Name</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Model:</strong></td>
+                                                <td>@Model.Order.Variant.VehicleModel.Name</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Version:</strong></td>
+                                                <td>@Model.Order.Variant.Version</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>Color:</strong></td>
+                                                <td>@(Model.Order.Variant.Color ?? "N/A")</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Year:</strong></td>
+                                                <td>@(Model.Order.Variant.ProductYear?.ToString() ?? "N/A")</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Original Price:</strong></td>
+                                                <td>@(Model.Order.Variant.Price?.ToString("C") ?? "N/A")</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Final Price:</strong></td>
+                                                <td class="text-success fw-bold">
+                                                    @((Model.Order.Variant.Price - Model.DiscountAmount)?.ToString("C") ?? "N/A")
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,262 @@
+@model ASM1.WebMVC.Models.QuotationDetailViewModel
+@{
+    ViewData["Title"] = "Chi tiết báo giá #" + Model.QuotationId;
+}
+
+<style>
+    .quotation-simple {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .quotation-header {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 500;
+    }
+    
+    .status-pending { background-color: #fff3cd; color: #856404; }
+    .status-approved { background-color: #d1edff; color: #0c5460; }
+    .status-cancelled { background-color: #f8d7da; color: #721c24; }
+    
+    .info-table {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    
+    .info-table td {
+        padding: 8px;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .info-table td:first-child {
+        font-weight: 500;
+        width: 30%;
+        color: #6c757d;
+    }
+    
+    .price-section {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 5px;
+        margin: 20px 0;
+    }
+    
+    .final-price {
+        font-size: 28px;
+        font-weight: bold;
+        color: #198754;
+        text-align: center;
+        padding: 20px;
+        background-color: white;
+        border: 3px solid #198754;
+        border-radius: 8px;
+        margin: 15px 0;
+        box-shadow: 0 2px 8px rgba(25, 135, 84, 0.2);
+    }
+</style>
+
+<div class="quotation-simple">
+    <!-- Header -->
+    <div class="quotation-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">BÁO GIÁ #@Model.QuotationId</h3>
+            @switch (Model.Status?.ToLower())
+            {
+                case "pending":
+                    <span class="status-badge status-pending">Chờ duyệt</span>
+                    break;
+                case "approved":
+                    <span class="status-badge status-approved">Đã duyệt</span>
+                    break;
+                case "cancelled":
+                    <span class="status-badge status-cancelled">Đã hủy</span>
+                    break;
+                default:
+                    <span class="status-badge status-pending">@(Model.Status ?? "Chưa xác định")</span>
+                    break;
+            }
+        </div>
+        <p class="mb-0 mt-2 text-muted">Ngày tạo: @(Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa xác định")</p>
+    </div>
+
+    <!-- Customer Info -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="mb-0">Thông tin khách hàng</h5>
+        </div>
+        <div class="card-body">
+            <table class="info-table">
+                <tr>
+                    <td>Họ tên:</td>
+                    <td><strong>@Model.CustomerName</strong></td>
+                </tr>
+                <tr>
+                    <td>Email:</td>
+                    <td>@Model.CustomerEmail</td>
+                </tr>
+                @if (!string.IsNullOrEmpty(Model.CustomerPhone))
+                {
+                    <tr>
+                        <td>Điện thoại:</td>
+                        <td>@Model.CustomerPhone</td>
+                    </tr>
+                }
+            </table>
+        </div>
+    </div>
+
+    <!-- Vehicle Info -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="mb-0">Thông tin xe</h5>
+        </div>
+        <div class="card-body">
+            <table class="info-table">
+                <tr>
+                    <td>Hãng xe:</td>
+                    <td><strong>@Model.VehicleBrand</strong></td>
+                </tr>
+                <tr>
+                    <td>Model:</td>
+                    <td><strong>@Model.VehicleModel</strong></td>
+                </tr>
+                <tr>
+                    <td>Phiên bản:</td>
+                    <td><strong>@Model.VehicleVersion</strong></td>
+                </tr>
+                @if (!string.IsNullOrEmpty(Model.VehicleColor))
+                {
+                    <tr>
+                        <td>Màu sắc:</td>
+                        <td>@Model.VehicleColor</td>
+                    </tr>
+                }
+                @if (Model.VehicleYear.HasValue)
+                {
+                    <tr>
+                        <td>Năm sản xuất:</td>
+                        <td>@Model.VehicleYear</td>
+                    </tr>
+                }
+            </table>
+        </div>
+    </div>
+
+    <!-- Price Info -->
+    <div class="price-section">
+        <h5 class="mb-3 text-center">Giá báo giá</h5>
+        <div class="final-price">
+            @Model.FinalPrice.ToString("N0") VND
+        </div>
+        <p class="text-center text-muted small mt-2 mb-0">
+            (Đã bao gồm thuế VAT và các phí)
+        </p>
+    </div>
+
+    <!-- Contact -->
+    <div class="card">
+        <div class="card-body">
+            <h6>Nhân viên tư vấn: <strong>@Model.DealerName</strong></h6>
+            <p class="text-muted small mb-0">
+                AutoSales Company - Đại lý ủy quyền chính hãng<br>
+                Email: sales@autosales.com | Hotline: 0901.234.567
+            </p>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="text-center mt-4">
+        <a asp-action="Index" class="btn btn-secondary me-2">
+            <i class="bi bi-arrow-left"></i> Quay lại
+        </a>
+        @if (Model.Status?.ToLower() == "pending")
+        {
+            <button class="btn btn-success me-2" onclick="approveQuotation(@Model.QuotationId)">
+                <i class="bi bi-check"></i> Duyệt
+            </button>
+            <a asp-action="Edit" asp-route-id="@Model.QuotationId" class="btn btn-warning me-2">
+                <i class="bi bi-pencil"></i> Sửa
+            </a>
+            <button class="btn btn-danger" onclick="cancelQuotation(@Model.QuotationId)">
+                <i class="bi bi-x-circle"></i> Hủy báo giá
+            </button>
+        }
+        @if (Model.Status?.ToLower() == "approved")
+        {
+            <button class="btn btn-outline-primary" onclick="window.print()">
+                <i class="bi bi-printer"></i> In
+            </button>
+        }
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+<script>
+    function approveQuotation(id) {
+        if (confirm('Bạn có chắc chắn muốn duyệt báo giá này?')) {
+            fetch(`/Quotation/Approve/${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('[name="__RequestVerificationToken"]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message || 'Báo giá đã được duyệt thành công!');
+                    if (data.redirectUrl) {
+                        // Redirect to create order form
+                        window.location.href = data.redirectUrl;
+                    } else {
+                        location.reload();
+                    }
+                } else {
+                    alert('Có lỗi xảy ra khi duyệt báo giá: ' + (data.message || 'Không xác định'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi duyệt báo giá');
+            });
+        }
+    }
+
+    function cancelQuotation(id) {
+        if (confirm('Bạn có chắc chắn muốn hủy báo giá này? Hành động này không thể hoàn tác.')) {
+            fetch(`/Quotation/Cancel/${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('[name="__RequestVerificationToken"]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Báo giá đã được hủy thành công!');
+                    location.reload();
+                } else {
+                    alert('Có lỗi xảy ra khi hủy báo giá: ' + (data.message || 'Không xác định'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi hủy báo giá');
+            });
+        }
+    }
+</script>

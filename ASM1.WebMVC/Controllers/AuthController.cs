@@ -47,20 +47,14 @@ namespace ASM1.WebMVC.Controllers
 
             HttpContext.Session.SetString("UserId", user.UserId.ToString());
             HttpContext.Session.SetString("UserRole", user.Role.ToString());
+            HttpContext.Session.SetString("FullName", user.FullName ?? "User");
+            
+            // Set DealerId if user has one
+            if (user.DealerId.HasValue)
+            {
+                HttpContext.Session.SetInt32("DealerId", user.DealerId.Value);
+            }
 
-            // switch (user.Role.ToLower())
-            // {
-            //     case "admin":
-            //         return RedirectToAction("Index", "AdminDashboard");
-            //     case "dealer":
-            //         return RedirectToAction("Index", "DealerDashboard");
-            //     case "staff":
-            //         return RedirectToAction("Index", "StaffDashboard");
-            //     case "customer":
-            //         return RedirectToAction("Index", "CustomerPortal");
-            //     default:
-            //         return RedirectToAction("Index", "Home");
-            // }
             switch (user.Role.ToLower())
             {
                 case "admin":

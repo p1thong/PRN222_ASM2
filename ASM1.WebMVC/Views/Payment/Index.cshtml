@@ -1,0 +1,179 @@
+@model List<PaymentViewModel>
+
+@{
+    ViewData["Title"] = "Payments";
+}
+
+<div class="row">
+    <!-- Sidebar -->
+    @await Html.PartialAsync("_NavigationSidebar")
+
+    <!-- Main Content -->
+    <div class="col-md-9">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-credit-card"></i> 
+                Payments Management
+            </h2>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle"></i>
+                @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle"></i>
+                @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (Model != null && Model.Any())
+        {
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-success">
+                                <tr>
+                                    <th scope="col">
+                                        <i class="bi bi-credit-card"></i> Payment ID
+                                    </th>
+                                    <th scope="col">
+                                        <i class="bi bi-receipt"></i> Order ID
+                                    </th>
+                                    <th scope="col">
+                                        <i class="bi bi-calendar"></i> Payment Date
+                                    </th>
+                                    <th scope="col">
+                                        <i class="bi bi-currency-dollar"></i> Amount
+                                    </th>
+                                    <th scope="col">
+                                        <i class="bi bi-credit-card-2-front"></i> Method
+                                    </th>
+                                    <th scope="col" class="text-center">
+                                        <i class="bi bi-gear"></i> Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var payment in Model)
+                                {
+                                    <tr>
+                                        <td class="fw-bold">#@payment.PaymentId</td>
+                                        <td>
+                                            <a href="@Url.Action("Details", "Order", new { id = payment.OrderId })" 
+                                               class="text-decoration-none">
+                                                #@payment.OrderId
+                                            </a>
+                                        </td>
+                                        <td>
+                                            @if (payment.PaymentDate.HasValue)
+                                            {
+                                                @payment.PaymentDate.Value.ToString("dd/MM/yyyy")
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">No date</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="text-success fw-bold">@payment.Amount.ToString("C0", new System.Globalization.CultureInfo("vi-VN"))</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">@payment.Method</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="dropdown">
+                                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle px-2 py-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="bi bi-three-dots"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end" style="min-width: 120px;">
+                                                    <li>
+                                                        <a class="dropdown-item py-1" href="@Url.Action("Details", "Payment", new { id = payment.PaymentId })">
+                                                            <i class="bi bi-eye text-primary me-1"></i>Details
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item py-1" href="@Url.Action("Details", "Order", new { id = payment.OrderId })">
+                                                            <i class="bi bi-receipt text-info me-1"></i>Order
+                                                        </a>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider my-1"></li>
+                                                    <li>
+                                                        <button type="button" 
+                                                                class="dropdown-item text-danger py-1" 
+                                                                onclick="deletePayment(@payment.PaymentId)"
+                                                                style="border: none; background: none; width: 100%; text-align: left;">
+                                                            <i class="bi bi-trash text-danger me-1"></i>Delete
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="bi bi-credit-card-2-front display-1 text-muted"></i>
+                </div>
+                <h4 class="text-muted">No Payments Found</h4>
+                <p class="text-muted">There are currently no payments in the system.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmModalLabel">
+                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                    Confirm Delete
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this payment? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function deletePayment(paymentId) {
+            var form = document.getElementById('deleteForm');
+            form.action = '@Url.Action("Delete", "Payment")' + '/' + paymentId;
+            
+            var modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+            modal.show();
+        }
+    </script>
+}

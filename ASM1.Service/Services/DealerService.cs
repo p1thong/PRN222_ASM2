@@ -1,4 +1,4 @@
-﻿using ASM1.Repository.Data;
+using ASM1.Repository.Data;
 using ASM1.Repository.Models;
 using ASM1.Repository.Repositories.Interfaces;
 using ASM1.Service.Services.Interfaces;

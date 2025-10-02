@@ -1,31 +1,29 @@
 using ASM1.Repository.Models;
+using ASM1.Repository.Repositories.Interfaces;
 
 namespace ASM1.Repository.Repositories.Interfaces
 {
-    public interface IOrderRepository
+    public interface IOrderRepository : IGenericRepository<Order>
     {
-        // CRUD operations
-        IEnumerable<Order> GetAllOrders();
-        Order? GetOrderById(int id);
-        void AddOrder(Order order);
-        void UpdateOrder(Order order);
-        void DeleteOrder(int id);
+        Task<int> GenerateUniqueOrderIdAsync();
+        Task<IEnumerable<Order>> GetAllWithDetailsAsync();
+        Task<Order?> GetByIdWithDetailsAsync(int id);
         
         // Business operations
-        IEnumerable<Order> GetOrdersByDealer(int dealerId);
-        IEnumerable<Order> GetOrdersByCustomer(int customerId);
-        IEnumerable<Order> GetOrdersByVariant(int variantId);
-        IEnumerable<Order> GetOrdersByStatus(string status);
+        Task<IEnumerable<Order>> GetOrdersByDealerAsync(int dealerId);
+        Task<IEnumerable<Order>> GetOrdersByCustomerAsync(int customerId);
+        Task<IEnumerable<Order>> GetOrdersByVariantAsync(int variantId);
+        Task<IEnumerable<Order>> GetOrdersByStatusAsync(string status);
         
         // Statistics
-        int GetTotalOrdersByDealer(int dealerId);
-        int GetTotalOrdersByCustomer(int customerId);
-        decimal GetTotalOrderValueByDealer(int dealerId);
-        decimal GetTotalOrderValueByCustomer(int customerId);
+        Task<int> GetTotalOrdersByDealerAsync(int dealerId);
+        Task<int> GetTotalOrdersByCustomerAsync(int customerId);
+        Task<decimal> GetTotalOrderValueByDealerAsync(int dealerId);
+        Task<decimal> GetTotalOrderValueByCustomerAsync(int customerId);
         
         // Order status management
-        void UpdateOrderStatus(int orderId, string status);
-        IEnumerable<Order> GetPendingOrders();
-        IEnumerable<Order> GetCompletedOrders();
+        Task UpdateOrderStatusAsync(int orderId, string status);
+        Task<IEnumerable<Order>> GetPendingOrdersAsync();
+        Task<IEnumerable<Order>> GetCompletedOrdersAsync();
     }
 }

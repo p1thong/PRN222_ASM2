@@ -1,16 +1,13 @@
-﻿using ASM1.Repository.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ASM1.Repository.Models;
 
 namespace ASM1.Repository.Repositories.Interfaces
 {
-    public interface IFeedbackRepository
+    public interface IFeedbackRepository : IGenericRepository<Feedback>
     {
         IEnumerable<Feedback> GetAllFeedbacks();
-        Feedback GetFeedBackById(int id);
+        Feedback? GetFeedbackById(int feedbackId);
         void AddFeedback(Feedback feedback);
+        void UpdateFeedback(Feedback feedback);
+        void DeleteFeedback(int feedbackId);
     }
 }

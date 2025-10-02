@@ -1,121 +1,197 @@
-using ASM1.Repository.Models;
 using ASM1.Service.Services.Interfaces;
+using ASM1.WebMVC.Extensions;
+using ASM1.WebMVC.Models;
+using ASM1.Repository.Models;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ASM1.WebMVC.Controllers
 {
-    public class OrderController : Controller
+    public class OrderController : BaseController
     {
         private readonly IOrderService _orderService;
+        private readonly ICustomerService _customerService;
+        private readonly IQuotationService _quotationService;
+        private readonly IVehicleVariantService _vehicleVariantService;
+        private readonly IMapper _mapper;
 
-        public OrderController(IOrderService orderService)
+        public OrderController(IOrderService orderService, ICustomerService customerService, 
+            IQuotationService quotationService, IVehicleVariantService vehicleVariantService, IMapper mapper)
         {
             _orderService = orderService;
+            _customerService = customerService;
+            _quotationService = quotationService;
+            _vehicleVariantService = vehicleVariantService;
+            _mapper = mapper;
         }
 
-        // GET: Order
         public async Task<IActionResult> Index()
         {
-            var orders = await _orderService.GetAllOrdersAsync();
-            return View(orders);
+            var orders = await _orderService.GetAllAsync();
+            var viewModel = new List<OrderViewModel>();
+
+            foreach (var order in orders)
+            {
+                viewModel.Add(new OrderViewModel
+                {
+                    OrderId = order.OrderId,
+                    OrderDate = order.OrderDate,
+                    Status = order.Status,
+                    CustomerName = order.Customer?.FullName ?? "Unknown",
+                    DealerName = order.Dealer?.FullName ?? "Unknown",
+                    VehicleInfo = $"{order.Variant?.VehicleModel?.Name} - {order.Variant?.Version}",
+                    TotalAmount = order.Variant?.Price
+                });
+            }
+
+            return View(viewModel);
         }
 
-        // GET: Order/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            var order = await _orderService.GetOrderByIdAsync(id);
+            var order = await _orderService.GetByIdAsync(id);
             if (order == null)
             {
                 return NotFound();
             }
-            return View(order);
+
+            var viewModel = order;
+            return View(viewModel);
         }
 
-        // GET: Order/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            return View();
+            try
+            {
+                var customers = await _customerService.GetAllAsync();
+                var variants = await _vehicleVariantService.GetAllAsync();
+
+                ViewBag.Customers = customers;
+                ViewBag.VehicleVariants = variants;
+
+                return View();
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Lỗi khi tải dữ liệu: " + ex.Message;
+                return View();
+            }
         }
 
-        // POST: Order/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Order order)
+        public async Task<IActionResult> Create(Order model)
         {
-            if (ModelState.IsValid)
+            try
             {
-                var result = await _orderService.CreateOrderAsync(order);
-                if (result != null)
+                if (!ModelState.IsValid)
                 {
-                    TempData["SuccessMessage"] = "Order created successfully!";
-                    return RedirectToAction(nameof(Index));
+                    var customers = await _customerService.GetAllAsync();
+                    var variants = await _vehicleVariantService.GetAllAsync();
+
+                    ViewBag.Customers = customers;
+                    ViewBag.VehicleVariants = variants;
+                    return View(model);
                 }
-                
-                ModelState.AddModelError("", "Failed to create order. Please check your input.");
+
+                model.OrderDate = DateOnly.FromDateTime(DateTime.Now);
+                model.Status = "Pending";
+
+                await _orderService.AddAsync(model);
+
+                TempData["Success"] = "Tạo đơn hàng thành công!";
+                return RedirectToAction(nameof(Index));
             }
-            return View(order);
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Lỗi khi tạo đơn hàng: " + ex.Message;
+                
+                var customers = await _customerService.GetAllAsync();
+                var variants = await _vehicleVariantService.GetAllAsync();
+
+                ViewBag.Customers = customers;
+                ViewBag.VehicleVariants = variants;
+                return View(model);
+            }
         }
 
-        // GET: Order/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var order = await _orderService.GetOrderByIdAsync(id);
-            if (order == null)
+            try
             {
-                return NotFound();
+                var order = await _orderService.GetByIdAsync(id);
+                if (order == null)
+                {
+                    return NotFound();
+                }
+
+                var customers = await _customerService.GetAllAsync();
+                var variants = await _vehicleVariantService.GetAllAsync();
+
+                ViewBag.Customers = customers;
+                ViewBag.VehicleVariants = variants;
+
+                return View(order);
             }
-            return View(order);
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Lỗi khi tải dữ liệu: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
-        // POST: Order/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Order order)
+        public async Task<IActionResult> Edit(int id, Order model)
         {
-            if (id != order.OrderId)
+            if (id != model.OrderId)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            try
             {
-                var result = await _orderService.UpdateOrderAsync(order);
-                if (result != null)
+                if (!ModelState.IsValid)
                 {
-                    TempData["SuccessMessage"] = "Order updated successfully!";
-                    return RedirectToAction(nameof(Index));
+                    var customers = await _customerService.GetAllAsync();
+                    var variants = await _vehicleVariantService.GetAllAsync();
+
+                    ViewBag.Customers = customers;
+                    ViewBag.VehicleVariants = variants;
+                    return View(model);
                 }
-                
-                ModelState.AddModelError("", "Failed to update order.");
+
+                await _orderService.UpdateAsync(model);
+
+                TempData["Success"] = "Cập nhật đơn hàng thành công!";
+                return RedirectToAction(nameof(Index));
             }
-            return View(order);
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Lỗi khi cập nhật đơn hàng: " + ex.Message;
+                
+                var customers = await _customerService.GetAllAsync();
+                var variants = await _vehicleVariantService.GetAllAsync();
+
+                ViewBag.Customers = customers;
+                ViewBag.VehicleVariants = variants;
+                return View(model);
+            }
         }
 
-        // GET: Order/Delete/5
+        [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
-            var order = await _orderService.GetOrderByIdAsync(id);
-            if (order == null)
+            try
             {
-                return NotFound();
+                await _orderService.DeleteAsync(id);
+                TempData["Success"] = "Xóa đơn hàng thành công!";
             }
-            return View(order);
-        }
-
-        // POST: Order/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var result = await _orderService.DeleteOrderAsync(id);
-            if (result)
+            catch (Exception ex)
             {
-                TempData["SuccessMessage"] = "Order deleted successfully!";
+                TempData["Error"] = "Lỗi khi xóa đơn hàng: " + ex.Message;
             }
-            else
-            {
-                TempData["ErrorMessage"] = "Failed to delete order.";
-            }
+            
             return RedirectToAction(nameof(Index));
         }
 

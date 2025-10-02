@@ -1,15 +1,14 @@
-﻿using ASM1.Repository.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ASM1.Repository.Models;
 
 namespace ASM1.Service.Services.Interfaces
 {
     public interface ICustomerService
     {
-        void ScheduleTestDrive(TestDrive testDrive);
-        void SendFeedback(Feedback feedback);
+        Task<IEnumerable<Customer>> GetAllAsync();
+        Task<Customer?> GetByIdAsync(int id);
+        Task AddAsync(Customer customer);
+        Task UpdateAsync(Customer customer);
+        Task DeleteAsync(int id);
+        Task<bool> IsNewCustomerAsync(int customerId);
     }
 }

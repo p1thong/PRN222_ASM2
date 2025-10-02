@@ -5,11 +5,11 @@ namespace ASM1.Service.Services.Interfaces
     public interface IOrderService
     {
         // CRUD operations
-        Task<IEnumerable<Order>> GetAllOrdersAsync();
-        Task<Order?> GetOrderByIdAsync(int id);
-        Task<Order?> CreateOrderAsync(Order order);
-        Task<Order?> UpdateOrderAsync(Order order);
-        Task<bool> DeleteOrderAsync(int id);
+        Task<IEnumerable<Order>> GetAllAsync();
+        Task<Order?> GetByIdAsync(int id);
+        Task AddAsync(Order order);
+        Task UpdateAsync(Order order);
+        Task DeleteAsync(int id);
         
         // Business operations
         Task<IEnumerable<Order>> GetOrdersByDealerAsync(int dealerId);

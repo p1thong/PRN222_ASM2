@@ -1,30 +1,50 @@
-﻿using ASM1.Repository.Data;
+using ASM1.Repository.Data;
 using ASM1.Repository.Models;
 using ASM1.Repository.Repositories.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace ASM1.Repository.Repositories
 {
-    public class FeedbackRepository : IFeedbackRepository
+    public class FeedbackRepository : GenericRepository<Feedback>, IFeedbackRepository
     {
-        private readonly CarSalesDbContext _context;
-        public FeedbackRepository(CarSalesDbContext context)
+        public FeedbackRepository(CarSalesDbContext context) : base(context)
         {
-            _context = context;
+        }
+
+        public IEnumerable<Feedback> GetAllFeedbacks()
+        {
+            return _context.Set<Feedback>()
+                .Include(f => f.Customer)
+                .ToList();
+        }
+
+        public Feedback? GetFeedbackById(int feedbackId)
+        {
+            return _context.Set<Feedback>()
+                .Include(f => f.Customer)
+                .FirstOrDefault(f => f.FeedbackId == feedbackId);
         }
 
         public void AddFeedback(Feedback feedback)
         {
-            _context.Feedbacks.Add(feedback);
+            _context.Set<Feedback>().Add(feedback);
             _context.SaveChanges();
         }
 
-        public IEnumerable<Feedback> GetAllFeedbacks() => _context.Feedbacks.ToList();
+        public void UpdateFeedback(Feedback feedback)
+        {
+            _context.Set<Feedback>().Update(feedback);
+            _context.SaveChanges();
+        }
 
-        public Feedback GetFeedBackById(int id) => _context.Feedbacks.Find(id);
+        public void DeleteFeedback(int feedbackId)
+        {
+            var feedback = GetFeedbackById(feedbackId);
+            if (feedback != null)
+            {
+                _context.Set<Feedback>().Remove(feedback);
+                _context.SaveChanges();
+            }
+        }
     }
 }

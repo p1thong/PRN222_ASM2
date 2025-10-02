@@ -1,4 +1,5 @@
 using ASM1.Repository.Models;
+using ASM1.Repository.Repositories;
 using ASM1.Repository.Repositories.Interfaces;
 using ASM1.Service.Services.Interfaces;
 
@@ -6,103 +7,88 @@ namespace ASM1.Service.Services
 {
     public class OrderService : IOrderService
     {
-        private readonly IOrderRepository _orderRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public OrderService(IOrderRepository orderRepository)
+        public OrderService(IUnitOfWork unitOfWork)
         {
-            _orderRepository = orderRepository;
+            _unitOfWork = unitOfWork;
         }
 
-        public async Task<IEnumerable<Order>> GetAllOrdersAsync()
+        public async Task<IEnumerable<Order>> GetAllAsync()
         {
-            return await Task.FromResult(_orderRepository.GetAllOrders());
+            return await _unitOfWork.Orders.GetAllWithDetailsAsync();
         }
 
-        public async Task<Order?> GetOrderByIdAsync(int id)
+        public async Task<Order?> GetByIdAsync(int id)
         {
-            return await Task.FromResult(_orderRepository.GetOrderById(id));
+            return await _unitOfWork.Orders.GetByIdWithDetailsAsync(id);
         }
 
-        public async Task<Order?> CreateOrderAsync(Order order)
+        public async Task AddAsync(Order order)
         {
-            if (!await ValidateOrderAsync(order))
-                return null;
-
-            if (!await CanCreateOrderAsync(order.DealerId, order.CustomerId, order.VariantId))
-                return null;
-
-            _orderRepository.AddOrder(order);
-            return order;
+            order.OrderId = await _unitOfWork.Orders.GenerateUniqueOrderIdAsync();
+            await _unitOfWork.Orders.AddAsync(order);
+            await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<Order?> UpdateOrderAsync(Order order)
+        public async Task UpdateAsync(Order order)
         {
-            if (!await ValidateOrderAsync(order))
-                return null;
-
-            _orderRepository.UpdateOrder(order);
-            return order;
+            await _unitOfWork.Orders.UpdateAsync(order);
+            await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<bool> DeleteOrderAsync(int id)
+        public async Task DeleteAsync(int id)
         {
-            try
-            {
-                _orderRepository.DeleteOrder(id);
-                return await Task.FromResult(true);
-            }
-            catch
-            {
-                return false;
-            }
+            await _unitOfWork.Orders.DeleteAsync(id);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<Order>> GetOrdersByDealerAsync(int dealerId)
         {
-            return await Task.FromResult(_orderRepository.GetOrdersByDealer(dealerId));
+            return await _unitOfWork.Orders.GetOrdersByDealerAsync(dealerId);
         }
 
         public async Task<IEnumerable<Order>> GetOrdersByCustomerAsync(int customerId)
         {
-            return await Task.FromResult(_orderRepository.GetOrdersByCustomer(customerId));
+            return await _unitOfWork.Orders.GetOrdersByCustomerAsync(customerId);
         }
 
         public async Task<IEnumerable<Order>> GetOrdersByVariantAsync(int variantId)
         {
-            return await Task.FromResult(_orderRepository.GetOrdersByVariant(variantId));
+            return await _unitOfWork.Orders.GetOrdersByVariantAsync(variantId);
         }
 
         public async Task<IEnumerable<Order>> GetOrdersByStatusAsync(string status)
         {
-            return await Task.FromResult(_orderRepository.GetOrdersByStatus(status));
+            return await _unitOfWork.Orders.GetOrdersByStatusAsync(status);
         }
 
         public async Task<int> GetTotalOrdersByDealerAsync(int dealerId)
         {
-            return await Task.FromResult(_orderRepository.GetTotalOrdersByDealer(dealerId));
+            return await _unitOfWork.Orders.GetTotalOrdersByDealerAsync(dealerId);
         }
 
         public async Task<int> GetTotalOrdersByCustomerAsync(int customerId)
         {
-            return await Task.FromResult(_orderRepository.GetTotalOrdersByCustomer(customerId));
+            return await _unitOfWork.Orders.GetTotalOrdersByCustomerAsync(customerId);
         }
 
         public async Task<decimal> GetTotalOrderValueByDealerAsync(int dealerId)
         {
-            return await Task.FromResult(_orderRepository.GetTotalOrderValueByDealer(dealerId));
+            return await _unitOfWork.Orders.GetTotalOrderValueByDealerAsync(dealerId);
         }
 
         public async Task<decimal> GetTotalOrderValueByCustomerAsync(int customerId)
         {
-            return await Task.FromResult(_orderRepository.GetTotalOrderValueByCustomer(customerId));
+            return await _unitOfWork.Orders.GetTotalOrderValueByCustomerAsync(customerId);
         }
 
         public async Task<bool> UpdateOrderStatusAsync(int orderId, string status)
         {
             try
             {
-                _orderRepository.UpdateOrderStatus(orderId, status);
-                return await Task.FromResult(true);
+                await _unitOfWork.Orders.UpdateOrderStatusAsync(orderId, status);
+                return true;
             }
             catch
             {
@@ -112,12 +98,12 @@ namespace ASM1.Service.Services
 
         public async Task<IEnumerable<Order>> GetPendingOrdersAsync()
         {
-            return await Task.FromResult(_orderRepository.GetPendingOrders());
+            return await _unitOfWork.Orders.GetPendingOrdersAsync();
         }
 
         public async Task<IEnumerable<Order>> GetCompletedOrdersAsync()
         {
-            return await Task.FromResult(_orderRepository.GetCompletedOrders());
+            return await _unitOfWork.Orders.GetCompletedOrdersAsync();
         }
 
         public async Task<bool> ValidateOrderAsync(Order order)

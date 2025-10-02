@@ -1,22 +1,41 @@
 using ASM1.Repository.Data;
 using ASM1.Repository.Models;
 using ASM1.Repository.Repositories.Interfaces;
+using ASM1.Repository.Utilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace ASM1.Repository.Repositories
 {
-    public class OrderRepository : IOrderRepository
+    public class OrderRepository : GenericRepository<Order>, IOrderRepository
     {
-        private readonly CarSalesDbContext _context;
-
-        public OrderRepository(CarSalesDbContext context)
+        public OrderRepository(CarSalesDbContext context) : base(context)
         {
-            _context = context;
+        }
+        
+        public async Task<int> GenerateUniqueOrderIdAsync()
+        {
+            return await IdGenerator.GenerateUniqueOrderIdAsync(_context);
         }
 
-        public IEnumerable<Order> GetAllOrders()
+        public async Task<IEnumerable<Order>> GetAllWithDetailsAsync()
         {
-            return _context.Orders
+            var carSalesContext = (CarSalesDbContext)_context;
+            return await carSalesContext.Orders
+                .Include(o => o.Customer)
+                .Include(o => o.Dealer)
+                .Include(o => o.Variant)
+                    .ThenInclude(v => v.VehicleModel)
+                    .ThenInclude(m => m.Manufacturer)
+                .Include(o => o.Payments)
+                .Include(o => o.Promotions)
+                .Include(o => o.SalesContracts)
+                .ToListAsync();
+        }
+
+        public async Task<Order?> GetByIdWithDetailsAsync(int id)
+        {
+            var carSalesContext = (CarSalesDbContext)_context;
+            return await carSalesContext.Orders
                 .Include(o => o.Customer)
                 .Include(o => o.Dealer)
                 .Include(o => o.Variant)
@@ -25,137 +44,108 @@ namespace ASM1.Repository.Repositories
                 .Include(o => o.Payments)
                 .Include(o => o.Promotions)
                 .Include(o => o.SalesContracts)
-                .ToList();
+                .FirstOrDefaultAsync(o => o.OrderId == id);
         }
 
-        public Order? GetOrderById(int id)
+        public async Task<IEnumerable<Order>> GetOrdersByDealerAsync(int dealerId)
         {
-            return _context.Orders
-                .Include(o => o.Customer)
-                .Include(o => o.Dealer)
-                .Include(o => o.Variant)
-                    .ThenInclude(v => v.VehicleModel)
-                        .ThenInclude(vm => vm.Manufacturer)
-                .Include(o => o.Payments)
-                .Include(o => o.Promotions)
-                .Include(o => o.SalesContracts)
-                .FirstOrDefault(o => o.OrderId == id);
-        }
-
-        public void AddOrder(Order order)
-        {
-            order.OrderDate = DateOnly.FromDateTime(DateTime.Now);
-            order.Status = "Pending";
-            _context.Orders.Add(order);
-            _context.SaveChanges();
-        }
-
-        public void UpdateOrder(Order order)
-        {
-            _context.Orders.Update(order);
-            _context.SaveChanges();
-        }
-
-        public void DeleteOrder(int id)
-        {
-            var order = _context.Orders.Find(id);
-            if (order != null)
-            {
-                _context.Orders.Remove(order);
-                _context.SaveChanges();
-            }
-        }
-
-        public IEnumerable<Order> GetOrdersByDealer(int dealerId)
-        {
-            return _context.Orders
+            var carSalesContext = (CarSalesDbContext)_context;
+            return await carSalesContext.Orders
                 .Include(o => o.Customer)
                 .Include(o => o.Dealer)
                 .Include(o => o.Variant)
                     .ThenInclude(v => v.VehicleModel)
                         .ThenInclude(vm => vm.Manufacturer)
                 .Where(o => o.DealerId == dealerId)
-                .ToList();
+                .ToListAsync();
         }
 
-        public IEnumerable<Order> GetOrdersByCustomer(int customerId)
+        public async Task<IEnumerable<Order>> GetOrdersByCustomerAsync(int customerId)
         {
-            return _context.Orders
+            var carSalesContext = (CarSalesDbContext)_context;
+            return await carSalesContext.Orders
                 .Include(o => o.Customer)
                 .Include(o => o.Dealer)
                 .Include(o => o.Variant)
                     .ThenInclude(v => v.VehicleModel)
                         .ThenInclude(vm => vm.Manufacturer)
                 .Where(o => o.CustomerId == customerId)
-                .ToList();
+                .ToListAsync();
         }
 
-        public IEnumerable<Order> GetOrdersByVariant(int variantId)
+        public async Task<IEnumerable<Order>> GetOrdersByVariantAsync(int variantId)
         {
-            return _context.Orders
+            var carSalesContext = (CarSalesDbContext)_context;
+            return await carSalesContext.Orders
                 .Include(o => o.Customer)
                 .Include(o => o.Dealer)
                 .Include(o => o.Variant)
                     .ThenInclude(v => v.VehicleModel)
                         .ThenInclude(vm => vm.Manufacturer)
                 .Where(o => o.VariantId == variantId)
-                .ToList();
+                .ToListAsync();
         }
 
-        public IEnumerable<Order> GetOrdersByStatus(string status)
+        public async Task<IEnumerable<Order>> GetOrdersByStatusAsync(string status)
         {
-            return _context.Orders
+            var carSalesContext = (CarSalesDbContext)_context;
+            return await carSalesContext.Orders
                 .Include(o => o.Customer)
                 .Include(o => o.Dealer)
                 .Include(o => o.Variant)
                     .ThenInclude(v => v.VehicleModel)
                         .ThenInclude(vm => vm.Manufacturer)
                 .Where(o => o.Status == status)
-                .ToList();
+                .ToListAsync();
         }
 
-        public int GetTotalOrdersByDealer(int dealerId)
+        public async Task<int> GetTotalOrdersByDealerAsync(int dealerId)
         {
-            return _context.Orders.Count(o => o.DealerId == dealerId);
+            var carSalesContext = (CarSalesDbContext)_context;
+            return await carSalesContext.Orders.CountAsync(o => o.DealerId == dealerId);
         }
 
-        public int GetTotalOrdersByCustomer(int customerId)
+        public async Task<int> GetTotalOrdersByCustomerAsync(int customerId)
         {
-            return _context.Orders.Count(o => o.CustomerId == customerId);
+            var carSalesContext = (CarSalesDbContext)_context;
+            return await carSalesContext.Orders.CountAsync(o => o.CustomerId == customerId);
         }
 
-        public decimal GetTotalOrderValueByDealer(int dealerId)
+        public async Task<decimal> GetTotalOrderValueByDealerAsync(int dealerId)
         {
-            return _context.Orders
+            var carSalesContext = (CarSalesDbContext)_context;
+            return await carSalesContext.Orders
                 .Where(o => o.DealerId == dealerId && o.Variant.Price.HasValue)
-                .Sum(o => o.Variant.Price.Value);
+                .SumAsync(o => o.Variant.Price!.Value);
         }
 
-        public decimal GetTotalOrderValueByCustomer(int customerId)
+        public async Task<decimal> GetTotalOrderValueByCustomerAsync(int customerId)
         {
-            return _context.Orders
+            var carSalesContext = (CarSalesDbContext)_context;
+            return await carSalesContext.Orders
                 .Where(o => o.CustomerId == customerId && o.Variant.Price.HasValue)
-                .Sum(o => o.Variant.Price.Value);
+                .SumAsync(o => o.Variant.Price!.Value);
         }
 
-        public void UpdateOrderStatus(int orderId, string status)
+        public async Task UpdateOrderStatusAsync(int orderId, string status)
         {
-            var order = _context.Orders.Find(orderId);
+            var carSalesContext = (CarSalesDbContext)_context;
+            var order = await carSalesContext.Orders.FindAsync(orderId);
             if (order != null)
             {
                 order.Status = status;
-                _context.SaveChanges();
+                await carSalesContext.SaveChangesAsync();
             }
         }
 
-        public IEnumerable<Order> GetPendingOrders()
+        public async Task<IEnumerable<Order>> GetPendingOrdersAsync()
         {
-            return GetOrdersByStatus("Pending");
+            return await GetOrdersByStatusAsync("Pending");
         }
 
-        public IEnumerable<Order> GetCompletedOrders()
+        public async Task<IEnumerable<Order>> GetCompletedOrdersAsync()
         {
-            return GetOrdersByStatus("Completed");
+            return await GetOrdersByStatusAsync("Completed");
         }
     }
 }

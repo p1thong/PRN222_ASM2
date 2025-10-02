@@ -1,17 +1,13 @@
-﻿using ASM1.Repository.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ASM1.Repository.Models;
 
 namespace ASM1.Repository.Repositories.Interfaces
 {
-    public interface ITestDriveRepository
+    public interface ITestDriveRepository : IGenericRepository<TestDrive>
     {
         IEnumerable<TestDrive> GetAllTestDrives();
-        TestDrive GetTestDriveById(int testDriveId);
-        void UpdateTestDrive(TestDrive testDrive);
+        TestDrive? GetTestDriveById(int testDriveId);
         void AddTestDrive(TestDrive testDrive);
+        void UpdateTestDrive(TestDrive testDrive);
+        void DeleteTestDrive(int testDriveId);
     }
 }

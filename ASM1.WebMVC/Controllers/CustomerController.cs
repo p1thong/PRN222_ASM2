@@ -1,64 +1,247 @@
-﻿using ASM1.Repository.Models;
 using ASM1.Service.Services.Interfaces;
+using ASM1.WebMVC.Models;
+using ASM1.WebMVC.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using AutoMapper;
+using ASM1.Repository.Models;
 
 namespace ASM1.WebMVC.Controllers
 {
-    [Route("[controller]")]
-    public class CustomerController : Controller
+    public class CustomerController : BaseController
     {
         private readonly ICustomerService _customerService;
-        public CustomerController(ICustomerService customerService) 
+        private readonly IQuotationService _quotationService;
+        private readonly IMapper _mapper;
+
+        public CustomerController(ICustomerService customerService, IQuotationService quotationService, IMapper mapper)
         {
             _customerService = customerService;
+            _quotationService = quotationService;
+            _mapper = mapper;
         }
 
-        [HttpGet("schedule")]
-        public IActionResult ScheduleTestDrive()
+        public async Task<IActionResult> Index()
         {
+            try
+            {
+                var customers = await _customerService.GetAllAsync();
+                var customerViewModels = _mapper.Map<IEnumerable<CustomerViewModel>>(customers);
+                return View(customerViewModels.ToList());
+            }
+            catch (Exception ex)
+            {
+                this.SetErrorMessage("Có lỗi xảy ra khi tải danh sách khách hàng: " + ex.Message);
+                return View(new List<CustomerViewModel>());
+            }
+        }
+
+        [HttpGet]
+        public IActionResult Debug()
+        {
+            var userId = GetUserIdFromSession();
+            var userRole = GetUserRoleFromSession();
+            var dealerId = GetDealerIdFromSession();
+            var isLoggedIn = IsUserLoggedIn();
+            var isDealerUser = IsDealerUser();
+
+            // Console log session data
+            Console.WriteLine("=== SESSION DEBUG ===");
+            Console.WriteLine($"UserId: {userId}");
+            Console.WriteLine($"UserRole: {userRole}");
+            Console.WriteLine($"DealerId: {dealerId}");
+            Console.WriteLine($"IsLoggedIn: {isLoggedIn}");
+            Console.WriteLine($"IsDealerUser: {isDealerUser}");
+            Console.WriteLine("All session keys:");
+            foreach (var key in HttpContext.Session.Keys)
+            {
+                Console.WriteLine($"  {key}: {HttpContext.Session.GetString(key) ?? HttpContext.Session.GetInt32(key)?.ToString() ?? "null"}");
+            }
+
+            ViewBag.DebugInfo = $"UserId: {userId}, Role: {userRole}, DealerId: {dealerId}, IsLoggedIn: {isLoggedIn}, IsDealerUser: {isDealerUser}";
+            
             return View();
         }
 
-        [HttpPost("schedule")]
+        [HttpGet]
+        public IActionResult Add()
+        {
+            // Debug session data
+            var userId = GetUserIdFromSession();
+            var userRole = GetUserRoleFromSession();
+            var dealerId = GetDealerIdFromSession();
+            
+            // Kiểm tra quyền truy cập
+            if (!IsDealerUser())
+            {
+                TempData["Error"] = $"Bạn không có quyền truy cập chức năng này. UserId: {userId}, Role: {userRole}, DealerId: {dealerId}";
+                return RedirectToAction("Index", "Home");
+            }
+            
+            return View();
+        }
+
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult ScheduleTestDrive([FromBody] TestDrive testDrive)
+        public async Task<IActionResult> Add(CustomerCreateViewModel model)
         {
-            if (ModelState.IsValid) 
+            // Console log dữ liệu nhận được
+            Console.WriteLine("=== ADD CUSTOMER DEBUG ===");
+            Console.WriteLine($"Model received: FullName={model.FullName}, Email={model.Email}, Phone={model.Phone}, Birthday={model.Birthday}");
+            Console.WriteLine($"ModelState.IsValid: {ModelState.IsValid}");
+            
+            if (!ModelState.IsValid)
             {
-                _customerService.ScheduleTestDrive(testDrive);
-                return RedirectToAction("ScheduleSuccess");
+                Console.WriteLine("ModelState Errors:");
+                foreach (var error in ModelState)
+                {
+                    Console.WriteLine($"  {error.Key}: {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
+                }
+                return View(model);
             }
 
-            return View(testDrive);
-        }
-
-        [HttpGet("schedule-success")]
-        public IActionResult ScheduleSuccess()
-        {
-            return View();
-        }
-
-        [HttpGet("feedback")]
-        public IActionResult SendFeedback()
-        {
-            return View(); 
-        }
-
-        [HttpPost("feedback")]
-        public IActionResult SendFeedback([FromBody] Feedback feedback) 
-        {
-            if (ModelState.IsValid)
+            // Lấy DealerId từ session
+            var dealerId = GetDealerIdFromSession();
+            var userId = GetUserIdFromSession();
+            var userRole = GetUserRoleFromSession();
+            
+            Console.WriteLine($"Session Data: DealerId={dealerId}, UserId={userId}, UserRole={userRole}");
+            
+            if (dealerId.HasValue)
             {
-                _customerService.SendFeedback(feedback);
-                return RedirectToAction("FeedbackSuccess");
+                model.DealerId = dealerId.Value;
+                Console.WriteLine($"Model before service call: DealerId={model.DealerId}, FullName={model.FullName}, Email={model.Email}");
+                
+                try
+                {
+                    var customer = _mapper.Map<Customer>(model);
+                    await _customerService.AddAsync(customer);
+                    
+                    this.SetSuccessMessage("Thêm khách hàng thành công!");
+                    return RedirectToAction("Index");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Service error: {ex.Message}");
+                    this.AddError("Có lỗi xảy ra khi thêm khách hàng: " + ex.Message);
+                    return View(model);
+                }
             }
-            return View(feedback);
+            else
+            {
+                Console.WriteLine("No DealerId found in session");
+                this.AddError("Không tìm thấy Dealer đang đăng nhập. Vui lòng đăng nhập lại.");
+                return View(model);
+            }
         }
 
-        [HttpGet("feedback-success")]
-        public IActionResult FeedbackSuccess()
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
         {
-            return View();
+            try
+            {
+                var customer = await _customerService.GetByIdAsync(id);
+                if (customer == null)
+                {
+                    this.SetErrorMessage("Không tìm thấy khách hàng.");
+                    return RedirectToAction("Index");
+                }
+
+                // Lấy danh sách quotations cho customer này
+                var quotations = await _quotationService.GetByCustomerIdAsync(id);
+                var quotationViewModels = _mapper.Map<List<QuotationViewModel>>(quotations);
+                ViewBag.Quotations = quotationViewModels;
+
+                var customerViewModel = _mapper.Map<CustomerViewModel>(customer);
+                return View(customerViewModel);
+            }
+            catch (Exception ex)
+            {
+                this.SetErrorMessage("Có lỗi xảy ra: " + ex.Message);
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Update(int id)
+        {
+            // Kiểm tra quyền truy cập
+            if (!IsDealerUser())
+            {
+                TempData["Error"] = "Bạn không có quyền truy cập chức năng này.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            try
+            {
+                var customer = await _customerService.GetByIdAsync(id);
+                if (customer == null)
+                {
+                    this.SetErrorMessage("Không tìm thấy khách hàng.");
+                    return RedirectToAction("Index");
+                }
+
+                var customerViewModel = _mapper.Map<CustomerViewModel>(customer);
+                return View(customerViewModel);
+            }
+            catch (Exception ex)
+            {
+                this.SetErrorMessage("Có lỗi xảy ra: " + ex.Message);
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Update(CustomerViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // Kiểm tra quyền truy cập
+            if (!IsDealerUser())
+            {
+                TempData["Error"] = "Bạn không có quyền truy cập chức năng này.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            try
+            {
+                var customer = _mapper.Map<Customer>(model);
+                await _customerService.UpdateAsync(customer);
+                TempData["SuccessMessage"] = "Cập nhật khách hàng thành công!";
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(model);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            // Kiểm tra quyền truy cập
+            if (!IsDealerUser())
+            {
+                TempData["Error"] = "Bạn không có quyền truy cập chức năng này.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            try
+            {
+                await _customerService.DeleteAsync(id);
+                TempData["SuccessMessage"] = "Xóa khách hàng thành công!";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+            
+            return RedirectToAction("Index");
         }
     }
 }

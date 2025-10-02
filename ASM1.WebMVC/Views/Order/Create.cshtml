@@ -1,381 +1,56 @@
-@model ASM1.WebMVC.Models.OrderCreateViewModel
-@{
-    ViewData["Title"] = "Tạo Order";
-}
-
-<div class="container">
 @model ASM1.Repository.Models.Order
 
 @{
     ViewData["Title"] = "Create Order";
 }
 
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="mb-0">
-                        <i class="bi bi-plus-circle"></i> Tạo Order Mới
-                        @if (ViewBag.QuotationId != null)
-                        {
-                            <span class="text-muted"> (từ báo giá #@ViewBag.QuotationId)</span>
-                        }
-                    </h4>
-                </div>
-                <div class="card-body">
-                    <form asp-action="Create" method="post">
-                        @Html.AntiForgeryToken()
-                        
-                        <!-- Hidden fields -->
-                        <input type="hidden" asp-for="DealerId" value="@ViewBag.DealerId" />
-                        
-                        @if (ViewBag.QuotationId != null)
-                        {
-                            <input type="hidden" name="quotationId" value="@ViewBag.QuotationId" />
-                        }
+<h1>Create Order</h1>
 
-                        <!-- Customer Section -->
-                        <div class="card mb-3">
-                            <div class="card-header">
-                                <h5 class="mb-0">Thông tin khách hàng</h5>
-                            </div>
-                            <div class="card-body">
-                                @if (ViewBag.Customer != null)
-                                {
-                                    var customer = ViewBag.Customer as ASM1.WebMVC.Models.CustomerViewModel;
-                                    <!-- Display customer info if loaded from quotation -->
-                                    <input type="hidden" asp-for="CustomerId" value="@Model.CustomerId" />
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <label class="form-label">Họ tên:</label>
-                                            <p class="form-control-plaintext fw-bold">@customer?.FullName</p>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label">Email:</label>
-                                            <p class="form-control-plaintext">@customer?.Email</p>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <label class="form-label">Điện thoại:</label>
-                                            <p class="form-control-plaintext">@customer?.Phone</p>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label">Sinh nhật:</label>
-                                            <p class="form-control-plaintext">@(customer?.Birthday?.ToString("dd/MM/yyyy") ?? "Chưa có")</p>
-                                        </div>
-                                    </div>
-                                    <div class="text-end">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="showCustomerSelection()">
-                                            <i class="bi bi-pencil"></i> Chọn khách hàng khác
-                                        </button>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <!-- Customer selection dropdown -->
-                                    <div class="mb-3">
-                                        <label asp-for="CustomerId" class="form-label">Chọn khách hàng <span class="text-danger">*</span></label>
-                                        <select asp-for="CustomerId" class="form-select" id="customerSelect" onchange="loadCustomerInfo(this.value)">
-                                            <option value="">-- Chọn khách hàng --</option>
-                                            @if (ViewBag.Customers != null)
-                                            {
-                                                @foreach (var customer in (List<ASM1.WebMVC.Models.CustomerViewModel>)ViewBag.Customers)
-                                                {
-                                                    <option value="@customer.CustomerId" 
-                                                            data-name="@customer.FullName" 
-                                                            data-email="@customer.Email" 
-                                                            data-phone="@customer.Phone">
-                                                        @customer.FullName - @customer.Email
-                                                    </option>
-                                                }
-                                            }
-                                        </select>
-                                        <span asp-validation-for="CustomerId" class="text-danger"></span>
-                                    </div>
-                                }
-
-                                <!-- Customer selection section (hidden by default) -->
-                                <div id="customerSelectionSection" style="display: none;">
-                                    <div class="mb-3">
-                                        <label asp-for="CustomerId" class="form-label">Chọn khách hàng <span class="text-danger">*</span></label>
-                                        <select asp-for="CustomerId" class="form-select" id="customerSelectHidden" onchange="loadCustomerInfo(this.value)">
-                                            <option value="">-- Chọn khách hàng --</option>
-                                            @if (ViewBag.Customers != null)
-                                            {
-                                                @foreach (var customer in (List<ASM1.WebMVC.Models.CustomerViewModel>)ViewBag.Customers)
-                                                {
-                                                    <option value="@customer.CustomerId" 
-                                                            data-name="@customer.FullName" 
-                                                            data-email="@customer.Email" 
-                                                            data-phone="@customer.Phone">
-                                                        @customer.FullName - @customer.Email
-                                                    </option>
-                                                }
-                                            }
-                                        </select>
-                                        <span asp-validation-for="CustomerId" class="text-danger"></span>
-                                    </div>
-                    <h3 class="card-title">Create New Order</h3>
-                </div>
-                <div class="card-body">
-                    <form asp-action="Create" method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label asp-for="DealerId" class="form-label">Dealer</label>
-                                    <select asp-for="DealerId" class="form-select" asp-items="ViewBag.Dealers">
-                                        <option value="">-- Select Dealer --</option>
-                                    </select>
-                                    <span asp-validation-for="DealerId" class="text-danger"></span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label asp-for="CustomerId" class="form-label">Customer</label>
-                                    <select asp-for="CustomerId" class="form-select" asp-items="ViewBag.Customers">
-                                        <option value="">-- Select Customer --</option>
-                                    </select>
-                                    <span asp-validation-for="CustomerId" class="text-danger"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Vehicle Section -->
-                        <div class="card mb-3">
-                            <div class="card-header">
-                                <h5 class="mb-0">Thông tin xe</h5>
-                            </div>
-                            <div class="card-body">
-                                @if (ViewBag.VehicleVariant != null)
-                                {
-                                    var variant = ViewBag.VehicleVariant as ASM1.WebMVC.Models.VehicleVariantViewModel;
-                                    <!-- Display vehicle info if loaded from quotation -->
-                                    <input type="hidden" asp-for="VariantId" value="@Model.VariantId" />
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <label class="form-label">Loại xe:</label>
-                                            <p class="form-control-plaintext fw-bold">@variant?.FullName</p>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label">Màu sắc:</label>
-                                            <p class="form-control-plaintext">@variant?.Color</p>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <label class="form-label">Giá:</label>
-                                            <p class="form-control-plaintext fw-bold text-success">
-                                                @(variant?.Price?.ToString("N0") ?? "0") VND
-                                            </p>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label">Năm sản xuất:</label>
-                                            <p class="form-control-plaintext">@(variant?.ProductYear?.ToString() ?? "Chưa có")</p>
-                                        </div>
-                                    </div>
-                                    <div class="text-end">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="showVehicleSelection()">
-                                            <i class="bi bi-pencil"></i> Chọn xe khác
-                                        </button>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <!-- Vehicle selection dropdown -->
-                                    <div class="mb-3">
-                                        <label asp-for="VariantId" class="form-label">Chọn loại xe <span class="text-danger">*</span></label>
-                                        <select asp-for="VariantId" class="form-select" id="variantSelect" onchange="loadVariantInfo(this.value)">
-                                            <option value="">-- Chọn loại xe --</option>
-                                            @if (ViewBag.VehicleVariants != null)
-                                            {
-                                                @foreach (var variant in (List<ASM1.WebMVC.Models.VehicleVariantViewModel>)ViewBag.VehicleVariants)
-                                                {
-                                                    <option value="@variant.VariantId" 
-                                                            data-name="@variant.FullName" 
-                                                            data-color="@variant.Color" 
-                                                            data-price="@variant.Price" 
-                                                            data-year="@variant.ProductYear">
-                                                        @variant.FullName - @variant.Color (@(variant.Price?.ToString("N0") ?? "0") VND)
-                                                    </option>
-                                                }
-                                            }
-                                        </select>
-                                        <span asp-validation-for="VariantId" class="text-danger"></span>
-                                    </div>
-                                }
-
-                                <!-- Vehicle selection section (hidden by default) -->
-                                <div id="vehicleSelectionSection" style="display: none;">
-                                    <div class="mb-3">
-                                        <label asp-for="VariantId" class="form-label">Chọn loại xe <span class="text-danger">*</span></label>
-                                        <select asp-for="VariantId" class="form-select" id="variantSelectHidden" onchange="loadVariantInfo(this.value)">
-                                            <option value="">-- Chọn loại xe --</option>
-                                            @if (ViewBag.VehicleVariants != null)
-                                            {
-                                                @foreach (var variant in (List<ASM1.WebMVC.Models.VehicleVariantViewModel>)ViewBag.VehicleVariants)
-                                                {
-                                                    <option value="@variant.VariantId" 
-                                                            data-name="@variant.FullName" 
-                                                            data-color="@variant.Color" 
-                                                            data-price="@variant.Price" 
-                                                            data-year="@variant.ProductYear">
-                                                        @variant.FullName - @variant.Color (@(variant.Price?.ToString("N0") ?? "0") VND)
-                                                    </option>
-                                                }
-                                            }
-                                        </select>
-                                        <span asp-validation-for="VariantId" class="text-danger"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Order Details -->
-                        <div class="card mb-3">
-                            <div class="card-header">
-                                <h5 class="mb-0">Chi tiết order</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label asp-for="TotalAmount" class="form-label">Tổng tiền</label>
-                                            <input asp-for="TotalAmount" class="form-control" type="number" step="0.01" min="0" />
-                                            <span asp-validation-for="TotalAmount" class="text-danger"></span>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label asp-for="Status" class="form-label">Trạng thái</label>
-                                            <select asp-for="Status" class="form-select">
-                                                <option value="Pending">Pending</option>
-                                                <option value="Confirmed">Confirmed</option>
-                                                <option value="Processing">Processing</option>
-                                                <option value="Completed">Completed</option>
-                                                <option value="Cancelled">Cancelled</option>
-                                            </select>
-                                            <span asp-validation-for="Status" class="text-danger"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label asp-for="Notes" class="form-label">Ghi chú</label>
-                                    <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Nhập ghi chú cho order..."></textarea>
-                                    <span asp-validation-for="Notes" class="text-danger"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Action buttons -->
-                        <div class="text-center">
-                            <button type="submit" class="btn btn-success btn-lg me-3">
-                                <i class="bi bi-check-circle"></i> Tạo Order
-                            </button>
-                            <a asp-action="Index" class="btn btn-secondary btn-lg">
-                                <i class="bi bi-arrow-left"></i> Hủy
-                        <div class="form-group mb-3">
-                            <label asp-for="VariantId" class="form-label">Vehicle Variant</label>
-                            <select asp-for="VariantId" class="form-select" asp-items="ViewBag.Variants">
-                                <option value="">-- Select Vehicle Variant --</option>
-                            </select>
-                            <span asp-validation-for="VariantId" class="text-danger"></span>
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label asp-for="Status" class="form-label">Status</label>
-                            <select asp-for="Status" class="form-select">
-                                <option value="Pending">Pending</option>
-                                <option value="Confirmed">Confirmed</option>
-                                <option value="Completed">Completed</option>
-                                <option value="Cancelled">Cancelled</option>
-                            </select>
-                            <span asp-validation-for="Status" class="text-danger"></span>
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label asp-for="OrderDate" class="form-label">Order Date</label>
-                            <input asp-for="OrderDate" class="form-control" type="date" />
-                            <span asp-validation-for="OrderDate" class="text-danger"></span>
-                        </div>
-
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Create Order
-                            </button>
-                            <a asp-action="Index" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left"></i> Back to List
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+<form asp-action="Create">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    
+    <div class="form-group">
+        <label asp-for="DealerId" class="control-label">Dealer</label>
+        <select asp-for="DealerId" class="form-control">
+            <option value="">Select Dealer</option>
+        </select>
+        <span asp-validation-for="DealerId" class="text-danger"></span>
     </div>
-</div>
+    
+    <div class="form-group">
+        <label asp-for="CustomerId" class="control-label">Customer</label>
+        <select asp-for="CustomerId" class="form-control">
+            <option value="">Select Customer</option>
+        </select>
+        <span asp-validation-for="CustomerId" class="text-danger"></span>
+    </div>
+    
+    <div class="form-group">
+        <label asp-for="VariantId" class="control-label">Vehicle Variant</label>
+        <select asp-for="VariantId" class="form-control">
+            <option value="">Select Vehicle Variant</option>
+        </select>
+        <span asp-validation-for="VariantId" class="text-danger"></span>
+    </div>
+    
+    <div class="form-group">
+        <label asp-for="Status" class="control-label">Status</label>
+        <input asp-for="Status" class="form-control" />
+        <span asp-validation-for="Status" class="text-danger"></span>
+    </div>
+    
+    <div class="form-group">
+        <label asp-for="OrderDate" class="control-label">Order Date</label>
+        <input asp-for="OrderDate" class="form-control" type="datetime-local" />
+        <span asp-validation-for="OrderDate" class="text-danger"></span>
+    </div>
+    
+    <div class="form-group">
+        <input type="submit" value="Create" class="btn btn-primary" />
+        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    </div>
+</form>
 
-<script>
-    function showCustomerSelection() {
-        document.getElementById('customerSelectionSection').style.display = 'block';
-    }
-
-    function showVehicleSelection() {
-        document.getElementById('vehicleSelectionSection').style.display = 'block';
-    }
-
-    function loadCustomerInfo(customerId) {
-        // Update main CustomerId input if using hidden selection
-        const mainInput = document.querySelector('input[name="CustomerId"]');
-        if (mainInput) {
-            mainInput.value = customerId;
-        }
-    }
-
-    function loadVariantInfo(variantId) {
-        // Update main VariantId input if using hidden selection
-        const mainInput = document.querySelector('input[name="VariantId"]');
-        if (mainInput) {
-            mainInput.value = variantId;
-        }
-
-        // Update TotalAmount based on selected variant price
-        const variantSelect = document.getElementById('variantSelect') || document.getElementById('variantSelectHidden');
-        if (variantSelect && variantId) {
-            const selectedOption = variantSelect.querySelector(`option[value="${variantId}"]`);
-            if (selectedOption) {
-                const price = selectedOption.getAttribute('data-price');
-                if (price) {
-                    const totalAmountInput = document.querySelector('input[name="TotalAmount"]');
-                    if (totalAmountInput) {
-                        totalAmountInput.value = price;
-                    }
-                }
-            }
-        }
-    }
-
-    // Set initial values from quotation if available
-    document.addEventListener('DOMContentLoaded', function() {
-        @if (ViewBag.VehicleVariant != null)
-        {
-            var variant = ViewBag.VehicleVariant as ASM1.WebMVC.Models.VehicleVariantViewModel;
-            <text>
-            var price = @(variant?.Price ?? 0);
-            var totalAmountInput = document.querySelector('input[name="TotalAmount"]');
-            if (totalAmountInput && totalAmountInput.value == '') {
-                totalAmountInput.value = price;
-            }
-            </text>
-        }
-    });
-</script>
-
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

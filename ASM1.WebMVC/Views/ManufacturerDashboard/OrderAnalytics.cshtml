@@ -29,20 +29,20 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (dynamic model in Model)
+                                @foreach (dynamic orderModel in Model)
                                 {
                                     <tr>
-                                        <td>@model.ModelName</td>
+                                        <td>@orderModel.ModelName</td>
                                         <td>
-                                            <span class="badge bg-info">@model.Category</span>
+                                            <span class="badge bg-info">@orderModel.Category</span>
                                         </td>
-                                        <td>@model.TotalOrders</td>
-                                        <td>@(((decimal)model.TotalSales).ToString("C"))</td>
-                                        <td>@model.VariantCount</td>
+                                        <td>@orderModel.TotalOrders</td>
+                                        <td>@(((decimal)orderModel.TotalSales).ToString("C"))</td>
+                                        <td>@orderModel.VariantCount</td>
                                         <td>
                                             @{
-                                                var avgValue = model.TotalOrders > 0 ? 
-                                                    ((decimal)model.TotalSales) / (int)model.TotalOrders : 0;
+                                                var avgValue = orderModel.TotalOrders > 0 ? 
+                                                    ((decimal)orderModel.TotalSales) / (int)orderModel.TotalOrders : 0;
                                             }
                                             @avgValue.ToString("C")
                                         </td>

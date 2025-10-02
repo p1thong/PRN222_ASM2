@@ -114,10 +114,14 @@ namespace ASM1.Service.Services
         {
             var promotions = await GetPromotionsByCodeAsync(promotionCode);
             var activePromotion = promotions.FirstOrDefault(p => 
-                p.OrderId == orderId && 
-                await IsPromotionActiveAsync(p.PromotionId));
+                p.OrderId == orderId);
 
-            return activePromotion?.DiscountAmount ?? 0;
+            if (activePromotion != null && await IsPromotionActiveAsync(activePromotion.PromotionId))
+            {
+                return activePromotion.DiscountAmount;
+            }
+
+            return 0m;
         }
     }
 }

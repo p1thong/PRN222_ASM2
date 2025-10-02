@@ -89,12 +89,12 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    @foreach (dynamic model in topModels)
+                                                    @foreach (dynamic topModel in topModels)
                                                     {
                                                         <tr>
-                                                            <td>@model.ModelName</td>
-                                                            <td>@model.TotalOrders</td>
-                                                            <td>@(((decimal)model.TotalSales).ToString("C"))</td>
+                                                            <td>@topModel.ModelName</td>
+                                                            <td>@topModel.TotalOrders</td>
+                                                            <td>@(((decimal)topModel.TotalSales).ToString("C"))</td>
                                                         </tr>
                                                     }
                                                 </tbody>

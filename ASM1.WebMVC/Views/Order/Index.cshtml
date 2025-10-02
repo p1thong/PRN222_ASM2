@@ -9,105 +9,45 @@
     @await Html.PartialAsync("_NavigationSidebar")
 
     <!-- Main Content -->
-    <div class="col-md-9">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>
-                <i class="bi bi-cart-check"></i> 
-                Orders Management
-            </h2>
-        </div>
-
-        @if (TempData["Success"] != null)
-        {
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle"></i>
-                @TempData["Success"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">
+                    <i class="bi bi-list-ul"></i> Orders Management
+                </h4>
             </div>
-        }
+            <div class="card-body">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle"></i>
+                        @TempData["Success"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
 
-        @if (TempData["Error"] != null)
-        {
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle"></i>
-                @TempData["Error"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        @TempData["Error"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
 
-        @if (Model != null && Model.Any())
-        {
-            <div class="card">
-                <div class="card-body p-0">
+                @if (Model != null && Model.Any())
+                {
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0">
+                        <table class="table table-hover">
                             <thead class="table-primary">
                                 <tr>
-                                    <th scope="col">
-                                        <i class="bi bi-receipt"></i> Order ID
-                                    </th>
-                                    <th scope="col">
-                                        <i class="bi bi-person"></i> Customer
-                                    </th>
-                                    <th scope="col">
-                                        <i class="bi bi-calendar"></i> Order Date
-                                    </th>
-                                    <th scope="col">
-                                        <i class="bi bi-car-front"></i> Vehicle
-                                    </th>
-                                    <th scope="col">
-                                        <i class="bi bi-currency-dollar"></i> Amount
-                                    </th>
-                                    <th scope="col">
-                                        <i class="bi bi-flag"></i> Status
-                                    </th>
-                                    <th scope="col" class="text-center">
-                                        <i class="bi bi-gear"></i> Actions
-                                    </th>
-@model IEnumerable<ASM1.Repository.Models.Order>
-
-@{
-    ViewData["Title"] = "Orders Management";
-}
-
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3 class="card-title">Orders Management</h3>
-                    <a asp-action="Create" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Create New Order
-                    </a>
-                </div>
-                <div class="card-body">
-                    @if (TempData["SuccessMessage"] != null)
-                    {
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            @TempData["SuccessMessage"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    }
-                    @if (TempData["ErrorMessage"] != null)
-                    {
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            @TempData["ErrorMessage"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    }
-
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-striped">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Order ID</th>
-                                    <th>Customer</th>
-                                    <th>Dealer</th>
-                                    <th>Vehicle</th>
-                                    <th>Price</th>
-                                    <th>Order Date</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
+                                    <th><i class="bi bi-receipt"></i> Order ID</th>
+                                    <th><i class="bi bi-person"></i> Customer</th>
+                                    <th><i class="bi bi-calendar"></i> Order Date</th>
+                                    <th><i class="bi bi-car-front"></i> Vehicle</th>
+                                    <th><i class="bi bi-currency-dollar"></i> Price</th>
+                                    <th><i class="bi bi-flag"></i> Status</th>
+                                    <th><i class="bi bi-gear"></i> Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -115,123 +55,28 @@
                                 {
                                     <tr>
                                         <td class="fw-bold">#@order.OrderId</td>
+                                        <td>@order.CustomerName</td>
+                                        <td>@order.OrderDate?.ToString("dd/MM/yyyy")</td>
+                                        <td>@order.VehicleInfo</td>
+                                        <td>@order.TotalAmount?.ToString("C")</td>
                                         <td>
-                                            @if (!string.IsNullOrEmpty(order.CustomerName))
-                                            {
-                                                @order.CustomerName
-                                            }
-                                            else
-                                            {
-                                                <small class="text-muted">ID: @order.CustomerId</small>
-                                            }
-                                        </td>
-                                        <td>
-                                            @if (order.OrderDate.HasValue)
-                                            {
-                                                @order.OrderDate.Value.ToString("dd/MM/yyyy")
-                                            }
-                                            else
-                                            {
-                                                <span class="text-muted">No date</span>
-                                            }
-                                        </td>
-                                        <td>
-                                            @if (!string.IsNullOrEmpty(order.VehicleInfo))
-                                            {
-                                                <small>@order.VehicleInfo</small>
-                                            }
-                                            else
-                                            {
-                                                <span class="text-muted">-</span>
-                                            }
-                                        </td>
-                                        <td>
-                                            @if (order.TotalAmount.HasValue)
-                                            {
-                                                <span class="text-success fw-bold">@order.TotalAmount.Value.ToString("C0", new System.Globalization.CultureInfo("vi-VN"))</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="text-muted">-</span>
-                                            }
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-primary">@(order.Status ?? "Unknown")</span>
-                                        </td>
-                                        <td class="text-center">
-                                            <div class="dropdown">
-                                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle px-2 py-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="bi bi-three-dots"></i>
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-end" style="min-width: 120px;">
-                                                    <li>
-                                                        <a class="dropdown-item py-1" href="@Url.Action("Details", "Order", new { id = order.OrderId })">
-                                                            <i class="bi bi-eye text-primary me-1"></i>Details
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item py-1" href="@Url.Action("Edit", "Order", new { id = order.OrderId })">
-                                                            <i class="bi bi-pencil text-warning me-1"></i>Edit
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item py-1" href="@Url.Action("Create", "SalesContract", new { orderId = order.OrderId })">
-                                                            <i class="bi bi-file-earmark-text text-success me-1"></i>Contract
-                                                        </a>
-                                                    </li>
-                                                    <li><hr class="dropdown-divider my-1"></li>
-                                                    <li>
-                                                        <button type="button" 
-                                                                class="dropdown-item text-danger py-1" 
-                                                                onclick="deleteOrder(@order.OrderId)"
-                                                                style="border: none; background: none; width: 100%; text-align: left;">
-                                                            <i class="bi bi-trash text-danger me-1"></i>Delete
-                                                        </button>
-                                                    </li>
-                                                </ul>
-                                        <td>@order.OrderId</td>
-                                        <td>@order.Customer.FullName</td>
-                                        <td>@order.Dealer.FullName</td>
-                                        <td>
-                                            @order.Variant.VehicleModel.Name - @order.Variant.Version
-                                            <br><small class="text-muted">@order.Variant.Color, @order.Variant.ProductYear</small>
-                                        </td>
-                                        <td>@(order.Variant.Price?.ToString("C") ?? "N/A")</td>
-                                        <td>@(order.OrderDate?.ToString("dd/MM/yyyy") ?? "N/A")</td>
-                                        <td>
-                                            @switch (order.Status?.ToLower())
-                                            {
-                                                case "pending":
-                                                    <span class="badge bg-warning">Pending</span>
-                                                    break;
-                                                case "confirmed":
-                                                    <span class="badge bg-info">Confirmed</span>
-                                                    break;
-                                                case "completed":
-                                                    <span class="badge bg-success">Completed</span>
-                                                    break;
-                                                case "cancelled":
-                                                    <span class="badge bg-danger">Cancelled</span>
-                                                    break;
-                                                default:
-                                                    <span class="badge bg-secondary">@order.Status</span>
-                                                    break;
-                                            }
+                                            <span class="badge bg-primary">@order.Status</span>
                                         </td>
                                         <td>
                                             <div class="btn-group" role="group">
-                                                <a asp-action="Details" asp-route-id="@order.OrderId" 
-                                                   class="btn btn-sm btn-info" title="View Details">
-                                                    <i class="fas fa-eye"></i>
+                                                <a href="@Url.Action("Details", new { id = order.OrderId })" 
+                                                   class="btn btn-outline-info btn-sm">
+                                                    <i class="bi bi-eye"></i>
                                                 </a>
-                                                <a asp-action="Edit" asp-route-id="@order.OrderId" 
-                                                   class="btn btn-sm btn-warning" title="Edit">
-                                                    <i class="fas fa-edit"></i>
+                                                <a href="@Url.Action("Edit", new { id = order.OrderId })" 
+                                                   class="btn btn-outline-warning btn-sm">
+                                                    <i class="bi bi-pencil"></i>
                                                 </a>
-                                                <a asp-action="Delete" asp-route-id="@order.OrderId" 
-                                                   class="btn btn-sm btn-danger" title="Delete">
-                                                    <i class="fas fa-trash"></i>
-                                                </a>
+                                                <button type="button" 
+                                                        class="btn btn-outline-danger btn-sm" 
+                                                        onclick="deleteOrder(@order.OrderId)">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -239,19 +84,20 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox display-1 text-muted"></i>
+                        <h4 class="text-muted mt-3">No orders found</h4>
+                        <p class="text-muted">There are no orders to display at the moment.</p>
+                        <a href="@Url.Action("Create")" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Create New Order
+                        </a>
+                    </div>
+                }
             </div>
-        }
-        else
-        {
-            <div class="text-center py-5">
-                <div class="mb-4">
-                    <i class="bi bi-cart-x display-1 text-muted"></i>
-                </div>
-                <h4 class="text-muted">No Orders Found</h4>
-                <p class="text-muted">There are currently no orders in the system.</p>
-            </div>
-        }
+        </div>
     </div>
 </div>
 
@@ -261,8 +107,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="deleteConfirmModalLabel">
-                    <i class="bi bi-exclamation-triangle text-warning"></i>
-                    Confirm Delete
+                    <i class="bi bi-exclamation-triangle text-warning"></i> Confirm Delete
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -286,13 +131,10 @@
     <script>
         function deleteOrder(orderId) {
             var form = document.getElementById('deleteForm');
-            form.action = '@Url.Action("Delete", "Order")' + '/' + orderId;
-            
+            form.action = '@Url.Action("Delete")' + '/' + orderId;
+
             var modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
             modal.show();
         }
     </script>
 }
-        </div>
-    </div>
-</div>

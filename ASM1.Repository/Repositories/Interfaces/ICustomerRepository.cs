@@ -11,5 +11,6 @@ namespace ASM1.Repository.Repositories.Interfaces
 		IEnumerable<Customer> GetAllCustomers();
 		void AddCustomer(Customer customer);
 		void UpdateCustomer(Customer customer);
+
 	}
 }

@@ -97,5 +97,6 @@ namespace ASM1.Repository.Repositories
                 .Where(dc => dc.DealerId == dealerId && dc.CreditLimit.HasValue)
                 .Sum(dc => dc.CreditLimit.Value);
         }
+
     }
 }

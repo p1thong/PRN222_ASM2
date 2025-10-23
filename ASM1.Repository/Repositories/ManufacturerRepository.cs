@@ -23,5 +23,6 @@ namespace ASM1.Repository.Repositories
             return await _context.Set<Manufacturer>()
                 .FirstOrDefaultAsync(m => m.Name.ToLower() == name.ToLower());
         }
+
     }
 }

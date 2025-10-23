@@ -9,5 +9,6 @@ namespace ASM1.Repository.Repositories.Interfaces
         void AddFeedback(Feedback feedback);
         void UpdateFeedback(Feedback feedback);
         void DeleteFeedback(int feedbackId);
+
     }
 }

@@ -18,5 +18,6 @@ namespace ASM1.Repository.Repositories.Interfaces
         bool IsContractActive(int dealerId, int manufacturerId);
         decimal GetTotalTargetSalesByManufacturer(int manufacturerId);
         decimal GetTotalCreditLimitByDealer(int dealerId);
+
     }
 }
